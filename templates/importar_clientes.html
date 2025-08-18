@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Importar Clientes{% endblock %}
+
+{% block content %}
+<div class="main-content-card">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Importar Clientes desde CSV</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes mb-4">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('importar_clientes') }}" method="post" enctype="multipart/form-data" class="space-y-4">
+        <div class="form-group">
+            <label for="file" class="form-label">Selecciona un archivo CSV (.csv)</label>
+            <input type="file" id="file" name="file" class="form-file" accept=".csv" required>
+        </div>
+        <button type="submit" class="btn-primary w-full">Importar</button>
+    </form>
+</div>
+{% endblock %}

@@ -307,12 +307,20 @@ def eliminar_instalacion(id):
     try:
         conexion = get_db_connection()
         cursor = conexion.cursor(dictionary=True)
+        
+        # Eliminar primero las solicitudes de traspaso asociadas a las tareas de la instalación
+        # La tabla se llama solicitudes_traspaso, pero el campo que relaciona con la tarea es id_tarea
+        cursor.execute("DELETE FROM solicitudes_traspaso WHERE id_tarea IN (SELECT id_tarea FROM tareas WHERE id_instalacion = %s)", (id,))
+
+        # Luego eliminar las reservas y tareas asociadas a la instalación
+        cursor.execute("DELETE FROM reservas WHERE id_instalacion = %s", (id,))
+        cursor.execute("DELETE FROM tareas WHERE id_instalacion = %s", (id,))
+        
+        # Finalmente, eliminar la instalación en sí y su imagen
         cursor.execute("SELECT imagen_url FROM instalaciones WHERE id_instalacion = %s", (id,))
         instalacion = cursor.fetchone()
         if instalacion and instalacion['imagen_url'] and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(instalacion['imagen_url']))):
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(instalacion['imagen_url'])))
-        cursor.execute("DELETE FROM reservas WHERE id_instalacion = %s", (id,))
-        cursor.execute("DELETE FROM tareas WHERE id_instalacion = %s", (id,))
         cursor.execute("DELETE FROM instalaciones WHERE id_instalacion = %s", (id,))
         conexion.commit()
         flash("Instalación eliminada con éxito.", "success")
@@ -324,7 +332,6 @@ def eliminar_instalacion(id):
         if 'conexion' in locals() and conexion.is_connected():
             cursor.close()
             conexion.close()
-
 @app.route('/editar_usuario/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def editar_usuario(id):
@@ -464,7 +471,14 @@ def index():
     id_usuario = session.get('id_usuario')
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
-    sql = "SELECT * FROM instalaciones WHERE id_instalador = %s AND estado != 'Completado'"
+    # Consulta las tareas pendientes asignadas al usuario, uniendo las tablas de tareas e instalaciones
+    sql = """
+        SELECT i.*, t.id_tarea, t.tipo_tarea, t.descripcion AS descripcion_tarea, t.fecha_asignacion, t.estado AS estado_tarea
+        FROM instalaciones i
+        JOIN tareas t ON i.id_instalacion = t.id_instalacion
+        WHERE t.id_usuario_asignado = %s AND t.estado IN ('Pendiente', 'Disponible')
+        ORDER BY t.fecha_asignacion DESC
+    """
     cursor.execute(sql, (id_usuario,))
     tareas_asignadas = cursor.fetchall()
     cursor.close()
@@ -491,20 +505,31 @@ def mis_tareas():
     conexion.close()
     return render_template('mis_tareas.html', mis_tareas=mis_tareas)
 
+# Reemplaza el bloque 'completar_instalacion' en app.py
 @app.route('/completar_instalacion/<int:instalacion_id>', methods=['GET', 'POST'])
 @login_required
 @instalador_required
 def completar_instalacion(instalacion_id):
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
-    sql_instalacion = "SELECT * FROM instalaciones WHERE id_instalacion = %s AND id_instalador = %s"
-    cursor.execute(sql_instalacion, (instalacion_id, session.get('id_usuario')))
-    instalacion = cursor.fetchone()
-    if not instalacion:
-        flash("La instalación no existe o no te ha sido asignada.", "error")
+    
+    # Consulta mejorada: verifica si existe una tarea pendiente asignada a este usuario para esta instalación
+    sql_tarea = """
+        SELECT i.*, t.id_tarea, t.tipo_tarea, t.descripcion as descripcion_tarea
+        FROM instalaciones i
+        JOIN tareas t ON i.id_instalacion = t.id_instalacion
+        WHERE i.id_instalacion = %s AND t.id_usuario_asignado = %s AND t.estado = 'Pendiente'
+    """
+    cursor.execute(sql_tarea, (instalacion_id, session.get('id_usuario')))
+    tarea = cursor.fetchone()
+    
+    if not tarea:
+        flash("La tarea no existe, ya ha sido completada o no te ha sido asignada.", "error")
         cursor.close()
         conexion.close()
         return redirect(url_for('index'))
+    
+    # El resto de la lógica para el método POST (que está correcto)
     if request.method == 'POST':
         try:
             # Obtener todos los datos del nuevo formulario
@@ -538,10 +563,11 @@ def completar_instalacion(instalacion_id):
 
             fecha_completado = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            # Actualizar la tabla de instalaciones con todos los nuevos datos
-            sql_update = """
+            # === CORRECCIÓN APLICADA AQUÍ ===
+            # La tabla 'instalaciones' se actualiza con los detalles finales.
+            # El estado se establece directamente a 'Completado'.
+            sql_update_instalacion = """
                 UPDATE instalaciones SET 
-                estado = 'Completado', 
                 descripcion_final = %s, 
                 ubicacion_gps_final = %s, 
                 foto_adjunta = %s, 
@@ -549,26 +575,29 @@ def completar_instalacion(instalacion_id):
                 referencia = %s,
                 numero_serie = %s,
                 metodo_pago = %s,
-                numero_transaccion = %s
+                numero_transaccion = %s,
+                estado = 'Completado'
                 WHERE id_instalacion = %s
             """
-            valores_update = (
+            valores_update_instalacion = (
                 descripcion_final, ubicacion_gps_final, foto_url, fecha_completado,
                 referencia, numero_serie, metodo_pago, numero_transaccion,
                 instalacion_id
             )
-            cursor.execute(sql_update, valores_update)
+            cursor.execute(sql_update_instalacion, valores_update_instalacion)
 
-            # Actualizar el estado de la tarea en la tabla de tareas
-            sql_update_tarea = "UPDATE tareas SET estado = 'Completada' WHERE id_instalacion = %s AND id_usuario_asignado = %s"
-            cursor.execute(sql_update_tarea, (instalacion_id, session.get('id_usuario')))
+            # Eliminar solicitudes de traspaso relacionadas antes de actualizar la tarea (previene error de clave foránea)
+            # cursor.execute("DELETE FROM solicitudes_traspaso WHERE id_tarea = %s", (tarea['id_tarea'],))
+
+            # Se actualiza el estado de la tarea en la tabla 'tareas'.
+            sql_update_tarea = "UPDATE tareas SET estado = 'Completada' WHERE id_tarea = %s"
+            cursor.execute(sql_update_tarea, (tarea['id_tarea'],))
             
             conexion.commit()
-    # --- Lógica de la API de WhatsApp ---
-            whatsapp_token = "EAAPXjpwVm2QBPJEJZCF5iiiIdcgT1ZBgg2jUSWC6Cr9C1QqmVxFLZBDHHOI9riLF9UZAxjhOZBsNNfeKWUjB9FDGZCMM1J0R2iuoueF4FwafZAPWiyMRUIJ1mPT8uZCMtzkdKirqua2SbxnpcbM57HajnJKI2szfRZAMtPhigsdKVuJ9gvJayAGJkoThqF2eA8oSdcLiRhI1pwAKNhVx5ZBpquw3iYXgMNZBtKoCLnTtSNg2VO46gZDZD" # Reemplaza con tu token
-            phone_number_id = "738682315995138" # Reemplaza con tu ID de teléfono
+            
+            # --- Lógica de la API de WhatsApp ---
             recipient_number = "51905433166"
-            message_text = f"¡Hola! Tu instalación de {instalacion['nombre']} ha sido completada con éxito. Fecha de finalización: {fecha_completado}."
+            message_text = f"¡Hola! Tu instalación de {tarea['nombre']} ha sido completada con éxito. Fecha de finalización: {fecha_completado}."
             headers = {
                 "Authorization": f"Bearer {whatsapp_token}",
                 "Content-Type": "application/json"
@@ -593,12 +622,10 @@ def completar_instalacion(instalacion_id):
                 print(f"Error al enviar el mensaje de WhatsApp: {e}")
             # --- Fin de la lógica de la API de WhatsApp ---
 
-
             flash('La tarea se ha completado con éxito.', "success")
             return redirect(url_for('mis_tareas_completadas'))
         except Exception as e:
             flash(f'Error al completar la tarea: {e}', "error")
-            # Esto imprimirá el error en la consola para depuración
             print(f"Error en completar_instalacion: {e}")
             return redirect(url_for('completar_instalacion', instalacion_id=instalacion_id))
         finally:
@@ -606,9 +633,11 @@ def completar_instalacion(instalacion_id):
                 cursor.close()
                 conexion.close()
     
+    # Aquí es para el método GET, cuando el usuario navega a la página
     cursor.close()
     conexion.close()
-    return render_template('finalizar_tarea.html', tarea=instalacion)
+    return render_template('finalizar_tarea.html', tarea=tarea, maps_api_key=os.getenv("Maps_API_KEY"))
+
 
 # --- Rutas de Instalador ---
 @app.route('/mis_tareas_completadas')
@@ -909,21 +938,20 @@ def ver_tarea_completada(tarea_id):
         SELECT t.*, i.nombre_cliente, i.codigo_cliente, i.telefono_cliente,
                i.solicitud, i.referencia, i.ruta_caja_nap, i.ubicacion_gps,
                i.descripcion_final, i.ubicacion_gps_final, i.foto_adjunta,
-               i.fecha_completado, i.nombre as nombre_instalacion
+               i.fecha_completado, i.nombre as nombre_instalacion, u.nombre AS tecnico_asignado
         FROM tareas t
         JOIN instalaciones i ON t.id_instalacion = i.id_instalacion
-        WHERE t.id_tarea = %s AND t.id_usuario_asignado = %s
-    """, (tarea_id, session.get('id_usuario')))
-
-    tarea_completada = cursor.fetchone()
+        LEFT JOIN usuarios u ON t.id_usuario_asignado = u.id_usuario
+        WHERE t.id_tarea = %s
+    """, (tarea_id,))
+    tarea = cursor.fetchone()
     cursor.close()
     conexion.close()
 
-    if not tarea_completada:
-        flash("Tarea no encontrada o no tienes permisos para verla.", "error")
-        return redirect(url_for('mis_tareas_completadas'))
+    if not tarea:
+        abort(404)
 
-    return render_template('ver_tarea_completada.html', tarea=tarea_completada)
+    return render_template('ver_tarea_completada.html', tarea=tarea)
 
 
 # --- NUEVA FUNCIÓN: Exportar a Excel ---
@@ -1124,6 +1152,110 @@ def api_reniec_search():
         print(f"Error al conectar con la API de RENIEC: {e}")
         return jsonify({'success': False, 'message': 'Error al conectar con la API de RENIEC'}), 500
 
+@app.route('/solicitar_traspaso_tarea/<int:id_tarea>', methods=['POST'])
+@login_required
+@instalador_required
+def solicitar_traspaso_tarea(id_tarea):
+    id_usuario_destino = request.form.get('id_usuario_destino')
+    id_usuario_origen = session.get('id_usuario')
+    conexion = get_db_connection()
+    cursor = conexion.cursor()
+    
+    try:
+        # Verificar que la tarea le pertenece al usuario actual y que está en estado Pendiente
+        cursor.execute("SELECT * FROM tareas WHERE id_tarea = %s AND id_usuario_asignado = %s AND estado = 'Pendiente'", (id_tarea, id_usuario_origen))
+        tarea_existente = cursor.fetchone()
+        
+        if not tarea_existente:
+            flash("La tarea no existe, no te ha sido asignada o ya ha sido transferida.", "error")
+            return redirect(url_for('index'))
+            
+        # Insertar la solicitud de traspaso
+        sql = "INSERT INTO solicitudes_traspaso (id_tarea, id_usuario_origen, id_usuario_destino) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (id_tarea, id_usuario_origen, id_usuario_destino))
+        
+        # Opcional: Cambiar el estado de la tarea a "En Traspaso" para evitar conflictos
+        cursor.execute("UPDATE tareas SET estado = 'En Traspaso' WHERE id_tarea = %s", (id_tarea,))
+
+        conexion.commit()
+        flash("Solicitud de traspaso enviada con éxito.", "success")
+    except Exception as e:
+        conexion.rollback()
+        flash(f"Error al solicitar el traspaso: {e}", "error")
+    finally:
+        cursor.close()
+        conexion.close()
+    
+    return redirect(url_for('index'))
+
+@app.route('/aceptar_traspaso/<int:id_solicitud>', methods=['POST'])
+@login_required
+@instalador_required
+def aceptar_traspaso(id_solicitud):
+    id_usuario_actual = session.get('id_usuario')
+    conexion = get_db_connection()
+    cursor = conexion.cursor()
+    
+    try:
+        # Verificar que la solicitud existe y está pendiente para el usuario actual
+        cursor.execute("SELECT * FROM solicitudes_traspaso WHERE id = %s AND id_usuario_destino = %s AND estado = 'Pendiente'", (id_solicitud, id_usuario_actual))
+        solicitud = cursor.fetchone()
+        
+        if not solicitud:
+            flash("La solicitud no existe o no te corresponde.", "error")
+            return redirect(url_for('index'))
+            
+        # Actualizar la tarea con el nuevo instalador y el estado a 'Pendiente'
+        cursor.execute("UPDATE tareas SET id_usuario_asignado = %s, estado = 'Pendiente' WHERE id_tarea = %s", (solicitud[1], id_usuario_actual))
+        
+        # Actualizar la solicitud de traspaso a 'Aceptada'
+        cursor.execute("UPDATE solicitudes_traspaso SET estado = 'Aceptada' WHERE id = %s", (id_solicitud,))
+
+        conexion.commit()
+        flash("Traspaso aceptado con éxito. La tarea ha sido asignada a tu cuenta.", "success")
+    except Exception as e:
+        conexion.rollback()
+        flash(f"Error al aceptar el traspaso: {e}", "error")
+    finally:
+        cursor.close()
+        conexion.close()
+    
+    return redirect(url_for('index'))
+
+@app.route('/rechazar_traspaso/<int:id_solicitud>', methods=['POST'])
+@login_required
+@instalador_required
+def rechazar_traspaso(id_solicitud):
+    id_usuario_actual = session.get('id_usuario')
+    conexion = get_db_connection()
+    cursor = conexion.cursor()
+    
+    try:
+        # Verificar que la solicitud existe y está pendiente para el usuario actual
+        cursor.execute("SELECT * FROM solicitudes_traspaso WHERE id = %s AND id_usuario_destino = %s AND estado = 'Pendiente'", (id_solicitud, id_usuario_actual))
+        solicitud = cursor.fetchone()
+        
+        if not solicitud:
+            flash("La solicitud no existe o no te corresponde.", "error")
+            return redirect(url_for('index'))
+        
+        # Devolver el estado de la tarea a "Pendiente" para que pueda ser reasignada
+        cursor.execute("UPDATE tareas SET estado = 'Pendiente' WHERE id_tarea = %s", (solicitud[1],))
+        
+        # Actualizar la solicitud de traspaso a 'Rechazada'
+        cursor.execute("UPDATE solicitudes_traspaso SET estado = 'Rechazada' WHERE id = %s", (id_solicitud,))
+        
+        conexion.commit()
+        flash("Has rechazado el traspaso de la tarea.", "info")
+    except Exception as e:
+        conexion.rollback()
+        flash(f"Error al rechazar el traspaso: {e}", "error")
+    finally:
+        cursor.close()
+        conexion.close()
+    
+    return redirect(url_for('index'))
+
 # --- Inicio de la aplicación ---
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)  
