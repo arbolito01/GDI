@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Tareas{% endblock %}
+
+{% block content %}
+<div class="main-content-card">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Tareas</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes mb-4">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <div class="overflow-x-auto mb-10">
+        <table class="min-w-full bg-white rounded-lg shadow-md mt-4">
+            <thead>
+                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">ID Tarea</th>
+                    <th class="py-3 px-6 text-left">Tipo</th>
+                    <th class="py-3 px-6 text-left">Instalación</th>
+                    <th class="py-3 px-6 text-left">Asignado a</th>
+                    <th class="py-3 px-6 text-left">Estado</th>
+                    <th class="py-3 px-6 text-left">Fecha</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+                {% for tarea in tareas %}
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-6 text-left whitespace-nowrap">{{ tarea.id_tarea }}</td>
+                    <td class="py-3 px-6 text-left">{{ tarea.tipo_tarea }}</td>
+                    <td class="py-3 px-6 text-left">{{ tarea.nombre_instalacion }}</td>
+                    <td class="py-3 px-6 text-left">{{ tarea.nombre_usuario_asignado }}</td>
+                    <td class="py-3 px-6 text-left">
+                        <span class="py-1 px-3 rounded-full text-xs font-semibold
+                            {% if tarea.estado == 'Completada' %}bg-green-200 text-green-600{% else %}bg-yellow-200 text-yellow-600{% endif %}">
+                            {{ tarea.estado }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-6 text-left">{{ tarea.fecha_asignacion }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-8">
+        <a href="{{ url_for('exportar_tareas_excel') }}" class="btn-primary">Exportar Tareas Completadas (Excel)</a>
+    </div>
+</div>
+{% endblock %}

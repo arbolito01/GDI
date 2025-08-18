@@ -16,6 +16,14 @@
         {% endif %}
     {% endwith %}
 
+    <div class="filter-controls mt-6 mb-4">
+        <label for="fecha_inicio">Fecha de inicio:</label>
+        <input type="date" id="fecha_inicio">
+        <label for="fecha_fin">Fecha de fin:</label>
+        <input type="date" id="fecha_fin">
+        <button onclick="filtrarPorFecha()">Filtrar</button>
+    </div>
+
     <h2 class="form-section-title mt-8 mb-4">Gestión de Solicitudes/Instalaciones</h2>
     <a href="{{ url_for('nueva_instalacion') }}" class="btn-primary mb-6">
         Añadir Nueva Instalación
@@ -25,7 +33,7 @@
     </a>
 
     <div class="overflow-x-auto mb-10">
-        <table class="min-w-full bg-white rounded-lg shadow-md mt-4">
+        <table id="tabla-instalaciones" class="min-w-full bg-white rounded-lg shadow-md mt-4">
             <thead>
                 <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                     <th class="py-3 px-6 text-left">ID</th>
@@ -33,6 +41,7 @@
                     <th class="py-3 px-6 text-left">Cliente</th>
                     <th class="py-3 px-6 text-left">Estado</th>
                     <th class="py-3 px-6 text-left">Técnico Asignado</th>
+                    <th class="py-3 px-6 text-left">Fecha de Solicitud</th>
                     <th class="py-3 px-6 text-center">Acciones</th>
                 </tr>
             </thead>
@@ -44,37 +53,31 @@
                     <td class="py-3 px-6 text-left">{{ instalacion.nombre_cliente }}</td>
                     <td class="py-3 px-6 text-left">
                         <span class="py-1 px-3 rounded-full text-xs font-semibold
-                            {% if instalacion.estado == 'Completado' %}bg-green-200 text-green-600{% elif instalacion.estado == 'Asignado' %}bg-blue-200 text-blue-600{% else %}bg-yellow-200 text-yellow-600{% endif %}">
-                            {{ instalacion.estado }}
+                            {% if instalacion.estado_tarea == 'Completada' %}bg-green-200 text-green-600{% elif instalacion.estado_tarea == 'Pendiente' %}bg-yellow-200 text-yellow-600{% else %}bg-blue-200 text-blue-600{% endif %}">
+                            {{ instalacion.estado_tarea or 'No Asignado' }}
                         </span>
                     </td>
                     <td class="py-3 px-6 text-left">
-                        {% if instalacion.estado == 'Pendiente' %}
-                            <form action="{{ url_for('asignar_tecnico_en_linea') }}" method="POST" class="inline-flex items-center gap-2">
-                                <input type="hidden" name="id_instalacion" value="{{ instalacion.id_instalacion }}">
-                                <select name="id_usuario_asignado" class="form-select text-sm p-1" required>
-                                    <option value="">Seleccionar...</option>
-                                    {% for tecnico in tecnicos %}
-                                        <option value="{{ tecnico.id_usuario }}">{{ tecnico.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn-sm btn-success">Guardar</button>
-                            </form>
-                        {% else %}
-                            {{ instalacion.tecnico_asignado or 'No asignado' }}
-                        {% endif %}
+                        {{ instalacion.tecnico_asignado or 'No asignado' }}
+                    </td>
+                    <td class="py-3 px-6 text-left">
+                        {{ instalacion.fecha_asignacion.strftime('%d/%m/%Y') if instalacion.fecha_asignacion else 'N/A' }}
                     </td>
                     <td class="py-3 px-6 text-center whitespace-nowrap">
-                        <a href="{{ url_for('editar_instalacion', id=instalacion.id_instalacion) }}" class="text-blue-500 hover:text-blue-700 mx-1">Editar</a>
-                        <form action="{{ url_for('eliminar_instalacion', id=instalacion.id_instalacion) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta instalación y todas sus reservas y tareas asociadas?');">
-                            <button type="submit" class="text-red-500 hover:text-red-700 mx-1">Eliminar</button>
-                        </form>
+                        {% if instalacion.estado_tarea == 'Completada' %}
+                            <a href="{{ url_for('detalle_instalacion', id=instalacion.id_instalacion) }}" class="text-blue-500 hover:text-blue-700 mx-1">Detalles</a>
+                        {% else %}
+                            <form action="{{ url_for('eliminar_instalacion', id=instalacion.id_instalacion) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta instalación y todas sus reservas y tareas asociadas?');">
+                                <button type="submit" class="text-red-500 hover:text-red-700 mx-1">Eliminar</button>
+                            </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
 
     <h2 class="form-section-title mt-8 mb-4">Gestión de Usuarios</h2>
     <div class="overflow-x-auto">

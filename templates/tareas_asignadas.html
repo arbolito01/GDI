@@ -17,12 +17,14 @@
     {% endwith %}
 
     <div class="overflow-x-auto">
+        {% if tareas %}
         <table class="min-w-full bg-white rounded-lg shadow-md mt-4">
             <thead>
                 <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                     <th class="py-3 px-6 text-left">ID Instalación</th>
                     <th class="py-3 px-6 text-left">Nombre</th>
                     <th class="py-3 px-6 text-left">Cliente</th>
+                    <th class="py-3 px-6 text-left">Teléfono</th>
                     <th class="py-3 px-6 text-left">Estado</th>
                     <th class="py-3 px-6 text-left">Fecha Solicitada</th>
                     <th class="py-3 px-6 text-center">Acciones</th>
@@ -32,28 +34,30 @@
                 {% for tarea in tareas %}
                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                     <td class="py-3 px-6 text-left whitespace-nowrap">{{ tarea.id_instalacion }}</td>
-                    <td class="py-3 px-6 text-left">{{ tarea.nombre }}</td>
+                    <td class="py-3 px-6 text-left">{{ tarea.nombre_instalacion }}</td>
                     <td class="py-3 px-6 text-left">{{ tarea.nombre_cliente }}</td>
+                    <td class="py-3 px-6 text-left">{{ tarea.telefono_cliente }}</td>
                     <td class="py-3 px-6 text-left">
                         <span class="py-1 px-3 rounded-full text-xs font-semibold
                             {% if tarea.estado == 'Pendiente' %}bg-yellow-200 text-yellow-600{% else %}bg-blue-200 text-blue-600{% endif %}">
                             {{ tarea.estado }}
                         </span>
                     </td>
-                    <td class="py-3 px-6 text-left">{{ tarea.hora_solicitada }}</td>
+                    <td class="py-3 px-6 text-left">{{ tarea.fecha_asignacion }}</td>
                     <td class="py-3 px-6 text-center">
+                        <a href="tel:{{ tarea.telefono_cliente }}" class="btn-sm btn-success">Llamar</a>
                         <a href="{{ url_for('completar_instalacion', instalacion_id=tarea.id_instalacion) }}" class="btn-sm btn-primary">
                             Completar Tarea
                         </a>
                     </td>
                 </tr>
-                {% else %}
-                <tr class="border-b border-gray-200">
-                    <td colspan="6" class="py-3 px-6 text-center">No tienes tareas asignadas.</td>
-                </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p class="py-3 px-6 text-center">No tienes tareas asignadas.</p>
+        {% endif %}
     </div>
+    
 </div>
 {% endblock %}

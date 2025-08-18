@@ -1,16 +1,24 @@
+import os
+import requests
+import uuid
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash, abort, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
-import os
 from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import date, datetime
 import json
 from routeros_api import RouterOsApiPool
-import requests
+import pandas as pd
+from io import BytesIO
+from flask import send_file
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'tu_clave_secreta_aqui'
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'tu_clave_secreta_aqui')
 
 # --- Configuración de la Base de Datos ---
 db_config = {
@@ -27,6 +35,18 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+# --- Lectura de variables de entorno ---
+whatsapp_token = os.getenv("WHATSAPP_TOKEN")
+phone_number_id = os.getenv("PHONE_NUMBER_ID")
+router_ip = os.getenv("ROUTER_IP")
+router_port = int(os.getenv("ROUTER_PORT", '8728'))
+router_user = os.getenv("ROUTER_USER")
+router_password = os.getenv("ROUTER_PASSWORD")
+maps_api_key = os.getenv("Maps_API_KEY")
+reniec_api_key = os.getenv("RENIEC_API_KEY")
+reniec_api_endpoint = os.getenv("RENIEC_API_ENDPOINT")
+
 
 # --- Funciones Auxiliares ---
 def get_db_connection():
@@ -131,8 +151,18 @@ def logout():
 def admin():
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM instalaciones")
+    
+    cursor.execute("""
+        SELECT i.*, MAX(t.estado) AS estado_tarea, MAX(t.id_usuario_asignado) AS id_usuario_asignado,
+                 MAX(u.nombre) AS tecnico_asignado, MAX(t.fecha_asignacion) AS fecha_asignacion
+        FROM instalaciones i
+        LEFT JOIN tareas t ON i.id_instalacion = t.id_instalacion
+        LEFT JOIN usuarios u ON t.id_usuario_asignado = u.id_usuario
+        GROUP BY i.id_instalacion
+        ORDER BY fecha_asignacion DESC
+    """)
     instalaciones = cursor.fetchall()
+    
     cursor.execute("SELECT r.*, u.nombre AS nombre_usuario, i.nombre AS nombre_instalacion FROM reservas r JOIN usuarios u ON r.id_usuario = u.id_usuario JOIN instalaciones i ON r.id_instalacion = i.id_instalacion ORDER BY r.fecha DESC")
     reservas = cursor.fetchall()
     cursor.execute("SELECT * FROM usuarios")
@@ -146,7 +176,6 @@ def admin():
         ORDER BY t.fecha_asignacion DESC
     """)
     tareas = cursor.fetchall()
-    # Nuevo: Obtener la lista de técnicos/instaladores (usuarios no admin)
     cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
     tecnicos = cursor.fetchall()
     cursor.close()
@@ -163,18 +192,35 @@ def nueva_instalacion():
     cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
     tecnicos = cursor.fetchall()
     
+    cursor.execute("SELECT nombre FROM tipos_instalacion ORDER BY nombre")
+    tipos_instalacion = [row['nombre'] for row in cursor.fetchall()]
+
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
+        nombre_instalacion = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
-        estado = request.form.get('estado')
         hora_solicitada = request.form.get('hora_solicitada')
-        codigo_cliente = request.form.get('codigo_cliente')
-        solicitud = request.form.get('solicitud')
-        tecnico_asignado_id = request.form.get('tecnico_asignado')
+        
         nombre_cliente = request.form.get('nombre_cliente')
         telefono_cliente = request.form.get('telefono_cliente')
+        telefono_referencia = request.form.get('telefono_referencia')
+        
+        # --- Lógica de Autogeneración ---
+        cursor.execute("SELECT MAX(SUBSTRING_INDEX(codigo_cliente, '-', 1)) AS ultimo_numero FROM instalaciones WHERE codigo_cliente LIKE '5%'")
+        ultimo_numero_str = cursor.fetchone()['ultimo_numero']
+        if ultimo_numero_str and ultimo_numero_str.isdigit():
+            nuevo_numero = int(ultimo_numero_str) + 1
+        else:
+            nuevo_numero = 5000
+            
+        nombre_formateado = nombre_cliente.upper().replace(' ', '-')
+        codigo_cliente = f"{nuevo_numero}-{nombre_formateado}"
+        
+        pppoe_password = uuid.uuid4().hex[:8].upper()
+        # --- Fin de la Lógica de Autogeneración ---
+        
+        tecnico_asignado_id = request.form.get('tecnico_asignado')
         referencia = request.form.get('referencia')
-        ruta_caja_nap = request.form.get('ruta_caja_nap')
+        
         latitud = request.form.get('latitud', '')
         longitud = request.form.get('longitud', '')
         ubicacion_gps = f"{latitud},{longitud}" if latitud and longitud else ""
@@ -189,15 +235,12 @@ def nueva_instalacion():
                 imagen_url = os.path.join('uploads', filename).replace('\\', '/')
         
         try:
-            nombre_tecnico = None
-            if tecnico_asignado_id:
-                cursor.execute("SELECT nombre FROM usuarios WHERE id_usuario = %s", (tecnico_asignado_id,))
-                result = cursor.fetchone()
-                if result:
-                    nombre_tecnico = result['nombre']
+            cursor.execute("SELECT COUNT(*) FROM tipos_instalacion WHERE nombre = %s", (nombre_instalacion,))
+            if cursor.fetchone()['COUNT(*)'] == 0:
+                cursor.execute("INSERT INTO tipos_instalacion (nombre) VALUES (%s)", (nombre_instalacion,))
             
-            sql = "INSERT INTO instalaciones (nombre, descripcion, estado, imagen_url, hora_solicitada, codigo_cliente, solicitud, id_instalador, tecnico_asignado, nombre_cliente, telefono_cliente, referencia, ruta_caja_nap, ubicacion_gps) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            valores = (nombre, descripcion, estado, imagen_url, hora_solicitada, codigo_cliente, solicitud, tecnico_asignado_id, nombre_tecnico, nombre_cliente, telefono_cliente, referencia, ruta_caja_nap, ubicacion_gps)
+            sql = "INSERT INTO instalaciones (nombre, descripcion, imagen_url, hora_solicitada, codigo_cliente, nombre_cliente, telefono_cliente, telefono_referencia, pppoe_password, referencia, ubicacion_gps) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            valores = (nombre_instalacion, descripcion, imagen_url, hora_solicitada, codigo_cliente, nombre_cliente, telefono_cliente, telefono_referencia, pppoe_password, referencia, ubicacion_gps)
             cursor.execute(sql, valores)
             id_instalacion_creada = cursor.lastrowid
             
@@ -205,10 +248,10 @@ def nueva_instalacion():
                 estado_tarea = "Pendiente"
                 fecha_asignacion = date.today()
                 id_admin = session.get('id_usuario')
-                descripcion_tarea = f"Instalación de {solicitud} para el cliente {nombre_cliente}"
+                descripcion_tarea = f"Instalación de {nombre_instalacion} para el cliente {nombre_cliente}"
                 
                 sql_insert_tarea = "INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                valores_tarea = (id_instalacion_creada, id_admin, tecnico_asignado_id, solicitud, descripcion_tarea, fecha_asignacion, estado_tarea)
+                valores_tarea = (id_instalacion_creada, id_admin, tecnico_asignado_id, nombre_instalacion, descripcion_tarea, fecha_asignacion, estado_tarea)
                 cursor.execute(sql_insert_tarea, valores_tarea)
             
             conexion.commit()
@@ -219,12 +262,8 @@ def nueva_instalacion():
         finally:
             cursor.close()
             conexion.close()
-            return render_template('nueva_instalacion.html')
-    
-    maps_api_key = 'TU_API_KEY_AQUI'
-    cursor.close()
-    conexion.close()
-    return render_template('nueva_instalacion.html', tecnicos=tecnicos, maps_api_key=maps_api_key)
+            
+    return render_template('nueva_instalacion.html', tecnicos=tecnicos, tipos_instalacion=tipos_instalacion, maps_api_key=maps_api_key)
 
 @app.route('/editar_instalacion/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -235,7 +274,6 @@ def editar_instalacion(id):
     if request.method == 'POST':
         nombre = request.form['nombre']
         descripcion = request.form['descripcion']
-        estado = request.form['estado']
         imagen_url = request.form.get('imagen_actual', '')
         
         if 'imagen' in request.files and request.files['imagen'].filename != '':
@@ -248,7 +286,7 @@ def editar_instalacion(id):
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 imagen_url = os.path.join('uploads', filename).replace('\\', '/')
         
-        cursor.execute("UPDATE instalaciones SET nombre = %s, descripcion = %s, estado = %s, imagen_url = %s WHERE id_instalacion = %s", (nombre, descripcion, estado, imagen_url, id))
+        cursor.execute("UPDATE instalaciones SET nombre = %s, descripcion = %s, imagen_url = %s WHERE id_instalacion = %s", (nombre, descripcion, imagen_url, id))
         conexion.commit()
         conexion.close()
         flash("Instalación actualizada con éxito.", "success")
@@ -526,7 +564,7 @@ def completar_instalacion(instalacion_id):
             cursor.execute(sql_update_tarea, (instalacion_id, session.get('id_usuario')))
             
             conexion.commit()
-    # --- Lógica de la API de WhatsApp ---instalacion['51905433166']
+    # --- Lógica de la API de WhatsApp ---
             whatsapp_token = "EAAPXjpwVm2QBPJEJZCF5iiiIdcgT1ZBgg2jUSWC6Cr9C1QqmVxFLZBDHHOI9riLF9UZAxjhOZBsNNfeKWUjB9FDGZCMM1J0R2iuoueF4FwafZAPWiyMRUIJ1mPT8uZCMtzkdKirqua2SbxnpcbM57HajnJKI2szfRZAMtPhigsdKVuJ9gvJayAGJkoThqF2eA8oSdcLiRhI1pwAKNhVx5ZBpquw3iYXgMNZBtKoCLnTtSNg2VO46gZDZD" # Reemplaza con tu token
             phone_number_id = "738682315995138" # Reemplaza con tu ID de teléfono
             recipient_number = "51905433166"
@@ -860,6 +898,231 @@ def asignar_tecnico_en_linea():
     
     return redirect(url_for('admin'))
 
+@app.route('/ver_tarea_completada/<int:tarea_id>')
+@login_required
+@instalador_required
+def ver_tarea_completada(tarea_id):
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT t.*, i.nombre_cliente, i.codigo_cliente, i.telefono_cliente,
+               i.solicitud, i.referencia, i.ruta_caja_nap, i.ubicacion_gps,
+               i.descripcion_final, i.ubicacion_gps_final, i.foto_adjunta,
+               i.fecha_completado, i.nombre as nombre_instalacion
+        FROM tareas t
+        JOIN instalaciones i ON t.id_instalacion = i.id_instalacion
+        WHERE t.id_tarea = %s AND t.id_usuario_asignado = %s
+    """, (tarea_id, session.get('id_usuario')))
+
+    tarea_completada = cursor.fetchone()
+    cursor.close()
+    conexion.close()
+
+    if not tarea_completada:
+        flash("Tarea no encontrada o no tienes permisos para verla.", "error")
+        return redirect(url_for('mis_tareas_completadas'))
+
+    return render_template('ver_tarea_completada.html', tarea=tarea_completada)
+
+
+# --- NUEVA FUNCIÓN: Exportar a Excel ---
+@app.route('/exportar_tareas_excel')
+@admin_required
+def exportar_tareas_excel():
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    
+    # Unir las tablas para obtener todos los detalles de las tareas completadas
+    cursor.execute("""
+        SELECT 
+            t.id_tarea,
+            t.tipo_tarea,
+            i.nombre AS nombre_instalacion,
+            i.nombre_cliente,
+            t.fecha_asignacion,
+            t.estado,
+            i.descripcion_final,
+            i.ubicacion_gps_final,
+            i.fecha_completado,
+            u.nombre AS tecnico_asignado
+        FROM tareas t
+        JOIN instalaciones i ON t.id_instalacion = i.id_instalacion
+        JOIN usuarios u ON t.id_usuario_asignado = u.id_usuario
+        WHERE t.estado = 'Completada'
+        ORDER BY t.fecha_asignacion DESC
+    """)
+    tareas = cursor.fetchall()
+    
+    cursor.close()
+    conexion.close()
+
+    if not tareas:
+        flash("No hay tareas completadas para exportar.", "error")
+        return redirect(url_for('admin'))
+
+    # Crear un DataFrame de pandas
+    df = pd.DataFrame(tareas)
+
+    # Crear un archivo Excel en memoria
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='openpyxl')
+    df.to_excel(writer, index=False, sheet_name='Tareas Completadas')
+    writer.close()
+    output.seek(0)
+
+    # Enviar el archivo al navegador
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        download_name='tareas_completadas.xlsx',
+        as_attachment=True
+    )
+
+# --- NUEVA FUNCIÓN: Gestión de Tareas ---
+@app.route('/gestion_tareas')
+@admin_required
+def gestion_tareas():
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT t.*, i.nombre AS nombre_instalacion, u.nombre AS nombre_usuario_asignado, a.nombre AS nombre_admin
+        FROM tareas t
+        JOIN instalaciones i ON t.id_instalacion = i.id_instalacion
+        JOIN usuarios u ON t.id_usuario_asignado = u.id_usuario
+        JOIN usuarios a ON t.id_admin = a.id_usuario
+        ORDER BY t.fecha_asignacion DESC
+    """)
+    tareas = cursor.fetchall()
+    
+    cursor.close()
+    conexion.close()
+    
+    return render_template('gestion_tareas.html', tareas=tareas)
+
+@app.route('/api/mis_tareas_completadas')
+@login_required
+@instalador_required
+def api_mis_tareas_completadas():
+    id_usuario = session['id_usuario']
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT t.id_tarea, i.nombre, i.fecha_completado
+        FROM instalaciones i
+        JOIN tareas t ON i.id_instalacion = t.id_instalacion
+        WHERE t.id_usuario_asignado = %s AND t.estado = 'Completada'
+    """, (id_usuario,))
+    tareas = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    events = []
+    for tarea in tareas:
+        events.append({
+            'id': tarea['id_tarea'],
+            'title': f"Tarea: {tarea['nombre']}",
+            'start': tarea['fecha_completado'].isoformat()
+        })
+
+    return jsonify(events) 
+
+@app.route('/mis_tareas_completadas_calendario')
+@login_required
+@instalador_required
+def mis_tareas_completadas_calendario():
+    return render_template('tareas_completadas_calendario.html')
+
+@app.route('/admin/tareas_calendario')
+@admin_required
+def admin_tareas_calendario():
+    return render_template('admin_tareas_calendario.html')
+
+@app.route('/api/admin_tareas_asignadas')
+@admin_required
+def api_admin_tareas_asignadas():
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT t.id_tarea, t.tipo_tarea, t.descripcion, t.fecha_asignacion, t.estado, u.nombre AS tecnico_asignado
+        FROM tareas t
+        JOIN usuarios u ON t.id_usuario_asignado = u.id_usuario
+        ORDER BY t.fecha_asignacion ASC
+    """)
+    tareas = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    events = []
+    for tarea in tareas:
+        # Puedes personalizar el título del evento
+        title = f"{tarea['tipo_tarea']} ({tarea['tecnico_asignado']})"
+        if tarea['estado'] == 'Completada':
+            title = f"COMPLETADA: {title}"
+
+        events.append({
+            'id': tarea['id_tarea'],
+            'title': title,
+            'start': tarea['fecha_asignacion'].isoformat(),
+            'color': 'green' if tarea['estado'] == 'Completada' else 'blue'
+        })
+
+    return jsonify(events)
+
+@app.route('/admin/ver_tarea/<int:id_tarea>')
+@admin_required
+def admin_ver_tarea(id_tarea):
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT t.*, i.nombre_cliente, i.codigo_cliente, i.telefono_cliente,
+               i.solicitud, i.referencia, i.ruta_caja_nap, i.ubicacion_gps,
+               i.descripcion_final, i.ubicacion_gps_final, i.foto_adjunta,
+               i.fecha_completado, i.nombre as nombre_instalacion, u.nombre AS tecnico_asignado
+        FROM tareas t
+        JOIN instalaciones i ON t.id_instalacion = i.id_instalacion
+        LEFT JOIN usuarios u ON t.id_usuario_asignado = u.id_usuario
+        WHERE t.id_tarea = %s
+    """, (id_tarea,))
+    tarea = cursor.fetchone()
+    cursor.close()
+    conexion.close()
+
+    if not tarea:
+        abort(404)
+
+    return render_template('ver_tarea_completada.html', tarea=tarea)
+
+@app.route('/api/reniec_search', methods=['GET'])
+@admin_required
+def api_reniec_search():
+    dni = request.args.get('dni')
+    if not dni:
+        return jsonify({'success': False, 'message': 'DNI no proporcionado'}), 400
+
+    headers = {
+        "Authorization": f"Bearer {reniec_api_key}",
+        "Content-Type": "application/json"
+    }
+    params = {
+        "dni": dni
+    }
+
+    try:
+        response = requests.get(reniec_api_endpoint, headers=headers, params=params)
+        response.raise_for_status()
+        
+        data = response.json()
+
+        if data and data.get('nombre'):
+            return jsonify({'success': True, 'nombre': data['nombre']})
+        else:
+            return jsonify({'success': False, 'message': 'DNI no encontrado en RENIEC'}), 404
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error al conectar con la API de RENIEC: {e}")
+        return jsonify({'success': False, 'message': 'Error al conectar con la API de RENIEC'}), 500
 
 # --- Inicio de la aplicación ---
 if __name__ == '__main__':

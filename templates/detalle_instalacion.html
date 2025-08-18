@@ -3,28 +3,86 @@
 {% block title %}Detalles de la Instalación{% endblock %}
 
 {% block content %}
-<div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul class="flashes">
-            {% for category, message in messages %}
-                <li class="alert alert-{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
+<div class="main-content-card">
+    <div class="header-nav">
+        <a href="{{ url_for('admin') }}" class="btn btn-primary">Volver al Panel de Admin</a>
+    </div>
 
-    <div class="main-content-card">
-        <h1>{{ instalacion.nombre }}</h1>
+    <h1>{{ instalacion.nombre }}</h1>
+    <div class="info-group">
+        <strong>Cliente:</strong>
+        <p>{{ instalacion.nombre_cliente }}</p>
+    </div>
+    <div class="info-group">
+        <strong>Descripción de la Solicitud:</strong>
+        <p>{{ instalacion.descripcion }}</p>
+    </div>
+    <div class="info-group">
+        <strong>Técnico Asignado:</strong>
+        <p>{{ instalacion.tecnico_asignado or 'N/A' }}</p>
+    </div>
+    <div class="info-group">
+        <strong>Estado de la Tarea:</strong>
+        <span class="card-status status-{{ instalacion.estado_tarea|lower|replace(' ', '-') }}">
+            {{ instalacion.estado_tarea or 'No Asignado' }}
+        </span>
+    </div>
+
+    {% if instalacion.estado_tarea == 'Completada' %}
+<h2 class="form-section-title mt-6">Reporte de Finalización</h2>
+<div class="space-y-4">
+    <div class="info-group">
+        <strong>Descripción del Trabajo:</strong>
+        <p>{{ instalacion.descripcion_final or 'Sin descripción' }}</p>
+    </div>
+    <div class="info-group">
+        <strong>Número de Serie:</strong>
+        <p>{{ instalacion.numero_serie or 'N/A' }}</p>
+    </div>
+    <div class="info-group">
+        <strong>Ubicación Final (GPS):</strong>
+        <p>{{ instalacion.ubicacion_gps_final or 'N/A' }}</p>
+    </div>
+    <div class="info-group">
+        <strong>Fecha de Finalización:</strong>
+        <p>{{ instalacion.fecha_completado.strftime('%d/%m/%Y %H:%M') if instalacion.fecha_completado else 'N/A' }}</p>
+    </div>
+    {% if instalacion.foto_adjunta %}
+    <div class="info-group">
+        <strong>Foto de la Instalación:</strong>
+        <img src="{{ url_for('static', filename=instalacion.foto_adjunta) }}" alt="Foto de la instalación finalizada" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">
+    </div>
+    {% else %}
+    <div class="info-group">
+        <strong>Foto de la Instalación:</strong>
+        <p>No hay foto adjunta.</p>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+
+
+    <h2 class="form-section-title mt-6">Detalles de la Solicitud</h2>
+    <div class="space-y-4">
         <div class="info-group">
-            <strong>Descripción:</strong>
-            <p>{{ instalacion.descripcion }}</p>
+            <strong>Código de Cliente:</strong>
+            <p>{{ instalacion.codigo_cliente }}</p>
         </div>
         <div class="info-group">
-            <strong>Estado:</strong>
-            <span class="card-status status-{{ instalacion.estado|lower|replace(' ', '-') }}">
-                {{ instalacion.estado }}
-            </span>
+            <strong>Teléfono:</strong>
+            <p>{{ instalacion.telefono_cliente }}</p>
+        </div>
+        <div class="info-group">
+            <strong>Referencia del Domicilio:</strong>
+            <p>{{ instalacion.referencia }}</p>
+        </div>
+        <div class="info-group">
+            <strong>Ruta y Caja NAP:</strong>
+            <p>{{ instalacion.ruta_caja_nap }}</p>
+        </div>
+        <div class="info-group">
+            <strong>Ubicación inicial (GPS):</strong>
+            <p>{{ instalacion.ubicacion_gps }}</p>
         </div>
         {% if instalacion.imagen_url %}
         <div class="info-group">
@@ -32,24 +90,7 @@
             <img src="{{ url_for('static', filename='uploads/' + instalacion.imagen_url.split('/')[-1]) }}" alt="Imagen de la instalación" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">
         </div>
         {% endif %}
-
-        <h2 class="form-section-title mt-6">Reservar Horario</h2>
-        <form action="{{ url_for('reservar') }}" method="POST" class="form-reserva">
-            <input type="hidden" name="id_instalacion" value="{{ instalacion.id_instalacion }}">
-            <div class="form-group">
-                <label for="fecha">Fecha:</label>
-                <input type="date" id="fecha" name="fecha" required>
-            </div>
-            <div class="form-group">
-                <label for="hora_inicio">Hora de inicio:</label>
-                <input type="time" id="hora_inicio" name="hora_inicio" required>
-            </div>
-            <div class="form-group">
-                <label for="hora_fin">Hora de fin:</label>
-                <input type="time" id="hora_fin" name="hora_fin" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Reservar</button>
-        </form>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

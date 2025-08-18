@@ -46,23 +46,72 @@
             {% endif %}
         {% endwith %}
 
-        {% if mis_tareas %}
-            <p>Aquí tienes un resumen de todas las tareas que te han sido asignadas.</p>
-            {% for tarea in mis_tareas %}
+        {% if solicitudes_recibidas %}
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-6">Solicitudes de Traspaso Recibidas</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-lg shadow-md">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">ID Tarea</th>
+                            <th class="py-3 px-6 text-left">Tipo de Tarea</th>
+                            <th class="py-3 px-6 text-left">Descripción</th>
+                            <th class="py-3 px-6 text-left">Solicitante</th>
+                            <th class="py-3 px-6 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-sm font-light">
+                        {% for solicitud in solicitudes_recibidas %}
+                        <tr class="border-b border-gray-200 hover:bg-gray-100">
+                            <td class="py-3 px-6 text-left">{{ solicitud.id_tarea }}</td>
+                            <td class="py-3 px-6 text-left">{{ solicitud.tipo_tarea }}</td>
+                            <td class="py-3 px-6 text-left">{{ solicitud.descripcion }}</td>
+                            <td class="py-3 px-6 text-left">{{ solicitud.solicitante }}</td>
+                            <td class="py-3 px-6 text-center whitespace-nowrap">
+                                <form action="{{ url_for('gestionar_traspaso') }}" method="POST" class="inline-block">
+                                    <input type="hidden" name="id_solicitud" value="{{ solicitud.id_solicitud }}">
+                                    <input type="hidden" name="accion" value="aceptar">
+                                    <button type="submit" class="text-green-500 hover:text-green-700 mx-1">Aceptar</button>
+                                </form>
+                                <form action="{{ url_for('gestionar_traspaso') }}" method="POST" class="inline-block">
+                                    <input type="hidden" name="id_solicitud" value="{{ solicitud.id_solicitud }}">
+                                    <input type="hidden" name="accion" value="rechazar">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 mx-1">Rechazar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-6">Mis Tareas Asignadas (Pendientes)</h2>
+
+        {% if tareas_pendientes %}
+            {% for tarea in tareas_pendientes %}
                 <div class="task-card">
                     <h3>Tarea: {{ tarea.tipo_tarea }}</h3>
                     <p><strong>Instalación:</strong> {{ tarea.nombre_instalacion }}</p>
+                    <p><strong>Cliente:</strong> {{ tarea.nombre_cliente }}</p>
+                    <p><strong>Teléfono:</strong> {{ tarea.telefono_cliente }}</p>
                     <p><strong>Descripción:</strong> {{ tarea.descripcion }}</p>
                     <p><strong>Fecha de Asignación:</strong> {{ tarea.fecha_asignacion }}</p>
                     <p><strong>Estado:</strong> 
                         <span class="task-status-{{ tarea.estado|lower }}">{{ tarea.estado }}</span>
                     </p>
                     <div class="task-actions">
-                        {% if tarea.estado != 'Completada' %}
-                            <a href="{{ url_for('completar_instalacion', instalacion_id=tarea.id_instalacion) }}" class="button">Completar Tarea</a>
-                        {% else %}
-                            <p>Esta tarea ya ha sido completada.</p>
-                        {% endif %}
+                        <a href="{{ url_for('completar_instalacion', instalacion_id=tarea.id_instalacion) }}" class="btn-primary">Completar Tarea</a>
+                        
+                        <form action="{{ url_for('solicitar_traspaso') }}" method="POST" class="inline-block ml-4">
+                            <input type="hidden" name="id_tarea" value="{{ tarea.id_tarea }}">
+                            <label for="receptor-{{ tarea.id_tarea }}" class="text-sm font-semibold text-gray-600">Traspasar a:</label>
+                            <select id="receptor-{{ tarea.id_tarea }}" name="id_receptor" class="form-select text-sm" required>
+                                {% for instalador in otros_instaladores %}
+                                    <option value="{{ instalador.id_usuario }}">{{ instalador.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn-secondary">Solicitar Traspaso</button>
+                        </form>
                     </div>
                 </div>
             {% endfor %}

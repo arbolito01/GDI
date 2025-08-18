@@ -72,10 +72,18 @@
             <strong>Descripción original:</strong>
             <p>{{ tarea.descripcion }}</p>
         </div>
-        <div class="read-only-field">
-            <strong>Ubicación inicial (GPS):</strong>
-            <p>{{ tarea.ubicacion_gps }}</p>
-        </div>
+<div class="read-only-field">
+    <strong>Ubicación inicial (GPS):</strong>
+    <p>{{ tarea.ubicacion_gps }}</p>
+    {% if tarea.ubicacion_gps %}
+        {% set coords = tarea.ubicacion_gps.split(',') %}
+        {% if coords|length == 2 %}
+            {% set lat = coords[0] %}
+            {% set lng = coords[1] %}
+            <a href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lng }}" target="_blank" class="button">Crear Ruta</a>
+        {% endif %}
+    {% endif %}
+</div>
 
         <form action="{{ url_for('completar_instalacion', instalacion_id=tarea.id_instalacion) }}" method="POST" enctype="multipart/form-data" onsubmit="return validateForm()">
             <div class="form-group">
@@ -143,6 +151,30 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoTransaccion = document.getElementById('campo_transaccion');
+            const pagoTransferencia = document.getElementById('pago_transferencia');
+            const numeroTransaccionInput = document.getElementById('numero_transaccion');
+            const form = document.querySelector('form');
+
+            function toggleCampoTransaccion() {
+                if (pagoTransferencia.checked) {
+                    campoTransaccion.classList.remove('hidden');
+                    numeroTransaccionInput.required = true;
+                } else {
+                    campoTransaccion.classList.add('hidden');
+                    numeroTransaccionInput.required = false;
+                    numeroTransaccionInput.value = '';
+                }
+            }
+
+            document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
+                radio.addEventListener('change', toggleCampoTransaccion);
+            });
+
+            toggleCampoTransaccion();
+        });
+
         let map, marker;
         const latInput = document.getElementById('latitud');
         const lngInput = document.getElementById('longitud');
@@ -203,5 +235,5 @@
             );
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCj9wq8Rhy7rOXccIQ8GbQN37Qd5GjfXvw&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ maps_api_key }}&callback=initMap"></script>
 {% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="header-nav">
+    <a href="{{ url_for('admin') }}" class="btn btn-primary">Volver al Panel de Admin</a>
+</div>
+
+<div class="container">
+    <div class="form-container">
+        <h1>Editar Usuario: {{ usuario.nombre }}</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('editar_usuario', id=usuario.id_usuario) }}" method="POST">
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Correo Electrónico:</label>
+                <input type="email" id="email" name="email" value="{{ usuario.email }}" required>
+            </div>
+            <div class="form-group">
+                <label for="direccion">Dirección:</label>
+                <input type="text" id="direccion" name="direccion" value="{{ usuario.direccion or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="telefono">Teléfono:</label>
+                <input type="tel" id="telefono" name="telefono" value="{{ usuario.telefono or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="dni">DNI:</label>
+                <input type="text" id="dni" name="dni" value="{{ usuario.dni or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Nueva Contraseña (opcional):</label>
+                <input type="password" id="password" name="password">
+            </div>
+            <button type="submit" class="btn btn-success">Guardar Cambios</button>
+            <a href="{{ url_for('admin') }}" class="btn btn-danger">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

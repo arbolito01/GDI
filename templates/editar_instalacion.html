@@ -38,12 +38,7 @@
         <label for="imagen">Subir nueva imagen:</label>
         <input type="file" id="imagen" name="imagen" accept="image/*">
 
-        <label for="estado">Estado:</label>
-        <select id="estado" name="estado">
-            <option value="Disponible" {% if instalacion.estado == 'Disponible' %}selected{% endif %}>Disponible</option>
-            <option value="Mantenimiento" {% if instalacion.estado == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
-            <option value="Fuera de Servicio" {% if instalacion.estado == 'Fuera de Servicio' %}selected{% endif %}>Fuera de Servicio</option>
-        </select>
+
 
         <button type="submit" class="btn btn-success">Guardar Cambios</button>
         <a href="{{ url_for('admin') }}" class="btn btn-danger">Cancelar</a>

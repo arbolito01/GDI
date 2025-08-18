@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Calendario de Tareas Completadas{% endblock %}
+{% block title %}Calendario de Tareas Asignadas{% endblock %}
 
 {% block content %}
 <div class="main-content-card">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Mis Tareas Completadas en Calendario</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Calendario de Tareas Asignadas</h1>
 
     <div id="calendar" class="p-4 bg-white rounded-lg shadow-md"></div>
 </div>
@@ -21,10 +21,10 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            events: '/api/mis_tareas_completadas',
+            events: '/api/admin_tareas_asignadas',
             eventClick: function(info) {
-                // Redirige a la página de detalles de la tarea completada del instalador
-                window.location.href = "{{ url_for('ver_tarea_completada', tarea_id=0) }}".replace('0', info.event.id);
+                // Redirige a la nueva página de detalles de la tarea del administrador
+                window.location.href = "{{ url_for('admin_ver_tarea', id_tarea=0) }}".replace('0', info.event.id);
             }
         });
         calendar.render();

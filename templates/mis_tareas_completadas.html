@@ -46,10 +46,7 @@
                     <td class="py-3 px-6 text-center whitespace-nowrap">
                         {% if tarea.estado == 'Completada' %}
                             {% if tarea.id_instalacion %}
-                                <a href="{}" class="text-blue-500 hover:text-blue-700 mx-1">Ver Detalles</a>
-                            {% else %}
-                                <span class="text-gray-500">Sin detalles</span>
-                            {% endif %}
+<a href="{{ url_for('ver_tarea_completada', tarea_id=tarea.id_tarea) }}" class="text-blue-500 hover:text-blue-700 mx-1">Ver Detalles</a>                            {% endif %}
                         {% else %}
                             <a href="{{ url_for('completar_instalacion', instalacion_id=tarea.id_instalacion) }}" class="text-green-500 hover:text-green-700 mx-1">Completar</a>
                         {% endif %}

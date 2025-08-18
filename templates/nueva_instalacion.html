@@ -20,7 +20,12 @@
         <h2 class="form-section-title">Información de la Instalación</h2>
         <div class="form-group">
             <label for="nombre" class="form-label">Nombre de la Instalación</label>
-            <input type="text" id="nombre" name="nombre" class="form-input" required>
+            <select id="nombre" name="nombre" class="form-select" required>
+                <option value="">Selecciona un tipo de instalación</option>
+                {% for tipo in tipos_instalacion %}
+                    <option value="{{ tipo }}">{{ tipo }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="form-group">
             <label for="descripcion" class="form-label">Descripción</label>
@@ -28,11 +33,8 @@
         </div>
         <div class="form-group">
             <label for="estado" class="form-label">Estado</label>
-            <select id="estado" name="estado" class="form-select" required>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Asignado">Asignado</option>
-                <option value="Completado">Completado</option>
-            </select>
+            <input type="hidden" name="estado" value="Pendiente">
+            <p class="form-input bg-gray-200 text-gray-600">Pendiente</p>
         </div>
         <div class="form-group">
             <label for="imagen" class="form-label">Imagen de Referencia</label>
@@ -40,10 +42,15 @@
         </div>
 
         <h2 class="form-section-title mt-6">Detalles del Cliente</h2>
+        
         <div class="form-group">
-            <label for="codigo_cliente" class="form-label">Código de Cliente</label>
-            <input type="text" id="codigo_cliente" name="codigo_cliente" class="form-input" required>
+            <label for="dni" class="form-label">DNI</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="dni" class="form-input" placeholder="Ingresa el DNI...">
+                <button type="button" id="search_dni_button" class="btn btn-primary">Buscar</button>
+            </div>
         </div>
+        
         <div class="form-group">
             <label for="nombre_cliente" class="form-label">Nombre del Cliente</label>
             <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-input" required>
@@ -53,16 +60,13 @@
             <input type="tel" id="telefono_cliente" name="telefono_cliente" class="form-input" required>
         </div>
         <div class="form-group">
-            <label for="solicitud" class="form-label">Tipo de Solicitud</label>
-            <input type="text" id="solicitud" name="solicitud" class="form-input" required>
+            <label for="telefono_referencia" class="form-label">Teléfono de Referencia (opcional)</label>
+            <input type="tel" id="telefono_referencia" name="telefono_referencia" class="form-input">
         </div>
+        
         <div class="form-group">
             <label for="referencia" class="form-label">Referencia del Domicilio</label>
             <input type="text" id="referencia" name="referencia" class="form-input" required>
-        </div>
-        <div class="form-group">
-            <label for="ruta_caja_nap" class="form-label">Ruta y Caja NAP</label>
-            <input type="text" id="ruta_caja_nap" name="ruta_caja_nap" class="form-input" required>
         </div>
 
         <h2 class="form-section-title mt-6">Asignación de Tarea</h2>
@@ -92,6 +96,9 @@
             <input type="text" id="longitud" name="longitud" class="form-input" placeholder="Ej: -77.042793" required readonly>
         </div>
 
+        <input type="hidden" id="codigo_cliente" name="codigo_cliente">
+        <input type="hidden" id="pppoe_password" name="pppoe_password">
+
         <button type="submit" class="btn-primary w-full mt-6">
             Añadir Instalación
         </button>
@@ -99,6 +106,83 @@
 </div>
 
 <script>
+    const tipoInstalacionSelect = document.getElementById('nombre');
+    const descripcionTextarea = document.getElementById('descripcion');
+    const searchDniButton = document.getElementById('search_dni_button');
+    const dniInput = document.getElementById('dni');
+    const nombreClienteInput = document.getElementById('nombre_cliente');
+    
+    // Diccionario de descripciones predefinidas
+    const descripciones = {
+        "Instalación Residencial": "Instalación de servicio de internet y TV para cliente residencial.",
+        "Instalación Corporativa": "Instalación de servicio dedicado de internet para cliente corporativo.",
+        "Reparación de Cable": "Reparación de rotura de cable en la red troncal.",
+        "Mantenimiento de Nodo": "Mantenimiento preventivo en nodo de fibra óptica.",
+        "Reconexión de Servicio": "Reconexión de servicio de internet a cliente previamente suspendido.",
+        "Traslado de Servicio": "Traslado de equipo y servicio a nueva dirección del cliente.",
+    };
+
+    // Lógica para autocompletar descripción
+    tipoInstalacionSelect.addEventListener('change', function() {
+        const valorSeleccionado = this.value;
+        if (descripciones[valorSeleccionado]) {
+            descripcionTextarea.value = descripciones[valorSeleccionado];
+        } else {
+            descripcionTextarea.value = '';
+        }
+    });
+
+    // Lógica para buscar DNI y autocompletar nombre
+    searchDniButton.addEventListener('click', function() {
+        const dni = dniInput.value;
+        if (dni) {
+            fetch(`/api/reniec_search?dni=${dni}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        nombreClienteInput.value = data.nombre;
+                        // Llama a la función de autogeneración después de la búsqueda
+                        generarDatosCliente(data.nombre);
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al buscar DNI:', error);
+                    alert('Error al conectar con la API de RENIEC.');
+                });
+        } else {
+            alert('Por favor, ingrese un DNI.');
+        }
+    });
+
+    // Lógica para autogenerar código de cliente y clave PPPoE
+    nombreClienteInput.addEventListener('input', function() {
+        const nombre = this.value;
+        if (nombre) {
+            generarDatosCliente(nombre);
+        }
+    });
+
+    function generarDatosCliente(nombre) {
+        // Lógica de autogeneración (simulada)
+        const numero = Math.floor(Math.random() * 1000) + 5000;
+        
+        // Se elimina el .split() para usar el nombre completo
+        const nombreCompleto = nombre.toUpperCase().replace(/\s/g, '-');
+        const codigo = `${numero}-${nombreCompleto}`;
+        
+        const pppoe = Math.random().toString(36).substring(2, 8);
+        
+        document.getElementById('codigo_cliente').value = codigo;
+        document.getElementById('pppoe_password').value = pppoe;
+        
+        // Muestra los valores generados en la interfaz de usuario
+        document.getElementById('codigo_cliente_display').innerText = codigo;
+        document.getElementById('pppoe_password_display').innerText = pppoe;
+    }
+
+    // Código de Google Maps y geolocalización...
     let map, marker;
     const latInput = document.getElementById('latitud');
     const lngInput = document.getElementById('longitud');
@@ -158,5 +242,5 @@
         );
     }
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCj9wq8Rhy7rOXccIQ8GbQN37Qd5GjfXvw&callback=initMap"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ maps_api_key }}&callback=initMap"></script>
 {% endblock %}
