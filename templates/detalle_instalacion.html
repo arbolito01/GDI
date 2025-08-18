@@ -47,17 +47,22 @@
         <strong>Fecha de Finalización:</strong>
         <p>{{ instalacion.fecha_completado.strftime('%d/%m/%Y %H:%M') if instalacion.fecha_completado else 'N/A' }}</p>
     </div>
-    {% if instalacion.foto_adjunta %}
+   {% if instalacion.foto_adjunta %}
     <div class="info-group">
-        <strong>Foto de la Instalación:</strong>
-        <img src="{{ url_for('static', filename=instalacion.foto_adjunta) }}" alt="Foto de la instalación finalizada" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">
+        <strong>Fotos de la Instalación:</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+        {% set fotos = instalacion.foto_adjunta | from_json %}
+        {% for foto in fotos %}
+            <img src="{{ url_for('static', filename=foto) }}" alt="Foto de la instalación" style="max-width: 100%; height: auto; border-radius: 8px;">
+        {% endfor %}
+        </div>
     </div>
-    {% else %}
+{% else %}
     <div class="info-group">
         <strong>Foto de la Instalación:</strong>
         <p>No hay foto adjunta.</p>
     </div>
-    {% endif %}
+{% endif %}
 </div>
 {% else %}
 
@@ -92,5 +97,6 @@
         {% endif %}
     </div>
     {% endif %}
+    
 </div>
 {% endblock %}

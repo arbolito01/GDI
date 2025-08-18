@@ -1,0 +1,190 @@
+2025-08-18 16:06:30,245 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.6:5000
+2025-08-18 16:06:30,245 INFO:[33mPress CTRL+C to quit[0m
+2025-08-18 16:06:30,247 INFO: * Restarting with stat
+2025-08-18 16:06:31,202 WARNING: * Debugger is active!
+2025-08-18 16:06:31,204 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:51:02,332 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\database.py', reloading
+2025-08-18 16:51:02,465 INFO: * Restarting with stat
+2025-08-18 16:51:03,637 WARNING: * Debugger is active!
+2025-08-18 16:51:03,640 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:51:54,791 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\services.py', reloading
+2025-08-18 16:51:54,956 INFO: * Restarting with stat
+2025-08-18 16:51:56,118 WARNING: * Debugger is active!
+2025-08-18 16:51:56,120 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:51:59,139 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\services.py', reloading
+2025-08-18 16:51:59,270 INFO: * Restarting with stat
+2025-08-18 16:52:00,233 WARNING: * Debugger is active!
+2025-08-18 16:52:00,235 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:52:02,252 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\services.py', reloading
+2025-08-18 16:52:02,363 INFO: * Restarting with stat
+2025-08-18 16:52:03,483 WARNING: * Debugger is active!
+2025-08-18 16:52:03,485 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:52:34,581 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:52:34,682 INFO: * Restarting with stat
+2025-08-18 16:52:40,591 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.6:5000
+2025-08-18 16:52:40,591 INFO:[33mPress CTRL+C to quit[0m
+2025-08-18 16:52:40,592 INFO: * Restarting with stat
+2025-08-18 16:52:41,749 WARNING: * Debugger is active!
+2025-08-18 16:52:41,752 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:52:42,769 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:52:42,885 INFO: * Restarting with stat
+2025-08-18 16:52:43,962 WARNING: * Debugger is active!
+2025-08-18 16:52:43,965 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:52:50,996 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:52:51,097 INFO: * Restarting with stat
+2025-08-18 16:52:52,194 WARNING: * Debugger is active!
+2025-08-18 16:52:52,196 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:53:25,297 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:53:25,407 INFO: * Restarting with stat
+2025-08-18 16:53:26,616 WARNING: * Debugger is active!
+2025-08-18 16:53:26,618 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:53:39,666 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:53:39,793 INFO: * Restarting with stat
+2025-08-18 16:53:40,757 WARNING: * Debugger is active!
+2025-08-18 16:53:40,759 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:54:04,837 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:54:04,937 INFO: * Restarting with stat
+2025-08-18 16:54:06,005 WARNING: * Debugger is active!
+2025-08-18 16:54:06,007 INFO: * Debugger PIN: 811-729-477
+2025-08-18 16:56:01,346 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 16:56:01,450 INFO: * Restarting with stat
+2025-08-18 16:56:02,466 WARNING: * Debugger is active!
+2025-08-18 16:56:02,468 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:12:33,922 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.6:5000
+2025-08-18 17:12:33,922 INFO:[33mPress CTRL+C to quit[0m
+2025-08-18 17:12:33,923 INFO: * Restarting with stat
+2025-08-18 17:12:34,879 WARNING: * Debugger is active!
+2025-08-18 17:12:34,881 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:12:46,455 INFO:127.0.0.1 - - [18/Aug/2025 17:12:46] "[32mGET / HTTP/1.1[0m" 302 -
+2025-08-18 17:12:46,523 INFO:127.0.0.1 - - [18/Aug/2025 17:12:46] "GET /admin HTTP/1.1" 200 -
+2025-08-18 17:12:46,700 INFO:127.0.0.1 - - [18/Aug/2025 17:12:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:12:51,580 INFO:127.0.0.1 - - [18/Aug/2025 17:12:51] "GET /admin/tareas_calendario HTTP/1.1" 200 -
+2025-08-18 17:12:51,605 INFO:127.0.0.1 - - [18/Aug/2025 17:12:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:12:51,764 INFO:127.0.0.1 - - [18/Aug/2025 17:12:51] "GET /api/admin_tareas_asignadas?start=2025-07-27T00:00:00-05:00&end=2025-09-07T00:00:00-05:00 HTTP/1.1" 200 -
+2025-08-18 17:12:53,495 INFO:127.0.0.1 - - [18/Aug/2025 17:12:53] "GET /nueva-instalacion HTTP/1.1" 200 -
+2025-08-18 17:12:53,519 INFO:127.0.0.1 - - [18/Aug/2025 17:12:53] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:12:58,063 INFO:127.0.0.1 - - [18/Aug/2025 17:12:58] "GET /gestion_tareas HTTP/1.1" 200 -
+2025-08-18 17:12:58,089 INFO:127.0.0.1 - - [18/Aug/2025 17:12:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:00,140 INFO:127.0.0.1 - - [18/Aug/2025 17:13:00] "GET /admin HTTP/1.1" 200 -
+2025-08-18 17:13:00,168 INFO:127.0.0.1 - - [18/Aug/2025 17:13:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:05,353 INFO:127.0.0.1 - - [18/Aug/2025 17:13:05] "[32mGET / HTTP/1.1[0m" 302 -
+2025-08-18 17:13:05,372 INFO:127.0.0.1 - - [18/Aug/2025 17:13:05] "GET /admin HTTP/1.1" 200 -
+2025-08-18 17:13:05,404 INFO:127.0.0.1 - - [18/Aug/2025 17:13:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:06,484 INFO:127.0.0.1 - - [18/Aug/2025 17:13:06] "[32mGET / HTTP/1.1[0m" 302 -
+2025-08-18 17:13:06,503 INFO:127.0.0.1 - - [18/Aug/2025 17:13:06] "GET /admin HTTP/1.1" 200 -
+2025-08-18 17:13:06,534 INFO:127.0.0.1 - - [18/Aug/2025 17:13:06] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:07,207 INFO:127.0.0.1 - - [18/Aug/2025 17:13:07] "GET /admin HTTP/1.1" 200 -
+2025-08-18 17:13:07,223 INFO:127.0.0.1 - - [18/Aug/2025 17:13:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:24,582 INFO:127.0.0.1 - - [18/Aug/2025 17:13:24] "GET / HTTP/1.1" 200 -
+2025-08-18 17:13:24,692 INFO:127.0.0.1 - - [18/Aug/2025 17:13:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:26,624 INFO:127.0.0.1 - - [18/Aug/2025 17:13:26] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-18 17:13:26,641 INFO:127.0.0.1 - - [18/Aug/2025 17:13:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:28,066 INFO:127.0.0.1 - - [18/Aug/2025 17:13:28] "GET /mis_tareas_completadas HTTP/1.1" 200 -
+2025-08-18 17:13:28,084 INFO:127.0.0.1 - - [18/Aug/2025 17:13:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:29,342 INFO:127.0.0.1 - - [18/Aug/2025 17:13:29] "GET /mis_tareas_completadas_calendario HTTP/1.1" 200 -
+2025-08-18 17:13:29,358 INFO:127.0.0.1 - - [18/Aug/2025 17:13:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:29,405 INFO:127.0.0.1 - - [18/Aug/2025 17:13:29] "GET /api/mis_tareas_completadas?start=2025-07-27T00:00:00-05:00&end=2025-09-07T00:00:00-05:00 HTTP/1.1" 200 -
+2025-08-18 17:13:31,467 INFO:127.0.0.1 - - [18/Aug/2025 17:13:31] "GET /mis_reservas HTTP/1.1" 200 -
+2025-08-18 17:13:31,481 INFO:127.0.0.1 - - [18/Aug/2025 17:13:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:13:33,576 INFO:127.0.0.1 - - [18/Aug/2025 17:13:33] "GET / HTTP/1.1" 200 -
+2025-08-18 17:13:33,590 INFO:127.0.0.1 - - [18/Aug/2025 17:13:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:15:23,379 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\database.py', reloading
+2025-08-18 17:15:23,509 INFO: * Restarting with stat
+2025-08-18 17:15:24,896 WARNING: * Debugger is active!
+2025-08-18 17:15:24,900 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:15:39,956 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\services.py', reloading
+2025-08-18 17:15:40,037 INFO: * Restarting with stat
+2025-08-18 17:15:41,019 WARNING: * Debugger is active!
+2025-08-18 17:15:41,021 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:19:32,671 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:19:32,784 INFO: * Restarting with stat
+2025-08-18 17:19:33,872 WARNING: * Debugger is active!
+2025-08-18 17:19:33,875 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:21:58,275 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\services.py', reloading
+2025-08-18 17:21:58,456 INFO: * Restarting with stat
+2025-08-18 17:21:59,562 WARNING: * Debugger is active!
+2025-08-18 17:21:59,565 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:22:56,738 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:22:56,842 INFO: * Restarting with stat
+2025-08-18 17:22:57,925 WARNING: * Debugger is active!
+2025-08-18 17:22:57,928 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:23:04,959 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:23:05,071 INFO: * Restarting with stat
+2025-08-18 17:23:06,146 WARNING: * Debugger is active!
+2025-08-18 17:23:06,148 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:23:21,202 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:23:21,318 INFO: * Restarting with stat
+2025-08-18 17:23:22,501 WARNING: * Debugger is active!
+2025-08-18 17:23:22,504 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:24:27,703 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:24:27,885 INFO: * Restarting with stat
+2025-08-18 17:24:29,072 WARNING: * Debugger is active!
+2025-08-18 17:24:29,075 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:30:08,135 INFO:127.0.0.1 - - [18/Aug/2025 17:30:08] "[32mGET / HTTP/1.1[0m" 302 -
+2025-08-18 17:30:08,247 INFO:127.0.0.1 - - [18/Aug/2025 17:30:08] "GET /admin HTTP/1.1" 200 -
+2025-08-18 17:30:08,379 INFO:127.0.0.1 - - [18/Aug/2025 17:30:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:30:08,619 INFO:127.0.0.1 - - [18/Aug/2025 17:30:08] "[33mGET /api/admin_stats HTTP/1.1[0m" 404 -
+2025-08-18 17:32:40,460 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:32:40,629 INFO: * Restarting with stat
+2025-08-18 17:32:41,898 WARNING: * Debugger is active!
+2025-08-18 17:32:41,901 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:32:42,918 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:32:43,025 INFO: * Restarting with stat
+2025-08-18 17:32:44,292 WARNING: * Debugger is active!
+2025-08-18 17:32:44,294 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:37:49,872 INFO:127.0.0.1 - - [18/Aug/2025 17:37:49] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-08-18 17:37:49,950 INFO:127.0.0.1 - - [18/Aug/2025 17:37:49] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:37:49,951 INFO:127.0.0.1 - - [18/Aug/2025 17:37:49] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:37:49,981 INFO:127.0.0.1 - - [18/Aug/2025 17:37:49] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1" 200 -
+2025-08-18 17:37:50,043 INFO:127.0.0.1 - - [18/Aug/2025 17:37:50] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-08-18 17:37:51,786 INFO:127.0.0.1 - - [18/Aug/2025 17:37:51] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-08-18 17:37:51,800 INFO:127.0.0.1 - - [18/Aug/2025 17:37:51] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:37:51,806 INFO:127.0.0.1 - - [18/Aug/2025 17:37:51] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:37:51,819 INFO:127.0.0.1 - - [18/Aug/2025 17:37:51] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1[0m" 304 -
+2025-08-18 17:38:52,735 INFO:127.0.0.1 - - [18/Aug/2025 17:38:52] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-08-18 17:38:52,751 INFO:127.0.0.1 - - [18/Aug/2025 17:38:52] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:38:52,763 INFO:127.0.0.1 - - [18/Aug/2025 17:38:52] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:38:52,776 INFO:127.0.0.1 - - [18/Aug/2025 17:38:52] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1[0m" 304 -
+2025-08-18 17:38:52,819 INFO:127.0.0.1 - - [18/Aug/2025 17:38:52] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-08-18 17:38:54,848 INFO:127.0.0.1 - - [18/Aug/2025 17:38:54] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-08-18 17:38:54,864 INFO:127.0.0.1 - - [18/Aug/2025 17:38:54] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:38:54,865 INFO:127.0.0.1 - - [18/Aug/2025 17:38:54] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:38:54,875 INFO:127.0.0.1 - - [18/Aug/2025 17:38:54] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1[0m" 304 -
+2025-08-18 17:38:58,039 INFO:127.0.0.1 - - [18/Aug/2025 17:38:58] "[35m[1mGET /mis_tareas_completadas HTTP/1.1[0m" 500 -
+2025-08-18 17:38:58,055 INFO:127.0.0.1 - - [18/Aug/2025 17:38:58] "[36mGET /mis_tareas_completadas?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:38:58,056 INFO:127.0.0.1 - - [18/Aug/2025 17:38:58] "[36mGET /mis_tareas_completadas?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:38:58,069 INFO:127.0.0.1 - - [18/Aug/2025 17:38:58] "GET /mis_tareas_completadas?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1" 200 -
+2025-08-18 17:38:58,110 INFO:127.0.0.1 - - [18/Aug/2025 17:38:58] "[36mGET /mis_tareas_completadas?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-08-18 17:39:00,749 INFO:127.0.0.1 - - [18/Aug/2025 17:39:00] "[35m[1mGET /mis_tareas_completadas_calendario HTTP/1.1[0m" 500 -
+2025-08-18 17:39:00,762 INFO:127.0.0.1 - - [18/Aug/2025 17:39:00] "[36mGET /mis_tareas_completadas_calendario?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:39:00,763 INFO:127.0.0.1 - - [18/Aug/2025 17:39:00] "[36mGET /mis_tareas_completadas_calendario?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:39:00,777 INFO:127.0.0.1 - - [18/Aug/2025 17:39:00] "GET /mis_tareas_completadas_calendario?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1" 200 -
+2025-08-18 17:39:00,820 INFO:127.0.0.1 - - [18/Aug/2025 17:39:00] "[36mGET /mis_tareas_completadas_calendario?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-08-18 17:39:02,565 INFO:127.0.0.1 - - [18/Aug/2025 17:39:02] "[35m[1mGET /mis_reservas HTTP/1.1[0m" 500 -
+2025-08-18 17:39:02,583 INFO:127.0.0.1 - - [18/Aug/2025 17:39:02] "[36mGET /mis_reservas?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-08-18 17:39:02,584 INFO:127.0.0.1 - - [18/Aug/2025 17:39:02] "[36mGET /mis_reservas?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-08-18 17:39:02,596 INFO:127.0.0.1 - - [18/Aug/2025 17:39:02] "GET /mis_reservas?__debugger__=yes&cmd=resource&f=console.png&s=1Hjat8swGYjEVrVnamoH HTTP/1.1" 200 -
+2025-08-18 17:39:02,639 INFO:127.0.0.1 - - [18/Aug/2025 17:39:02] "[36mGET /mis_reservas?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-08-18 17:42:10,904 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:42:11,021 INFO: * Restarting with stat
+2025-08-18 17:42:12,071 WARNING: * Debugger is active!
+2025-08-18 17:42:12,073 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:45:07,581 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:45:07,716 INFO: * Restarting with stat
+2025-08-18 17:45:08,860 WARNING: * Debugger is active!
+2025-08-18 17:45:08,862 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:46:52,179 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:46:52,284 INFO: * Restarting with stat
+2025-08-18 17:46:53,327 WARNING: * Debugger is active!
+2025-08-18 17:46:53,329 INFO: * Debugger PIN: 811-729-477
+2025-08-18 17:48:37,627 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
+2025-08-18 17:48:37,734 INFO: * Restarting with stat

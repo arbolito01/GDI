@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Equipo{% endblock %}
+
+{% block content %}
+<div class="main-content-card">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Editar Equipo: {{ equipo.numero_serie }}</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes mb-4">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('inventario_editar', id=equipo.id_equipo) }}" method="POST" class="space-y-4">
+        <div class="form-group">
+            <label for="numero_serie">Número de Serie:</label>
+            <input type="text" id="numero_serie" name="numero_serie" value="{{ equipo.numero_serie }}" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label for="modelo">Modelo:</label>
+            <input type="text" id="modelo" name="modelo" value="{{ equipo.modelo }}" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" class="form-select" required>
+                <option value="Disponible" {% if equipo.estado == 'Disponible' %}selected{% endif %}>Disponible</option>
+                <option value="Asignado" {% if equipo.estado == 'Asignado' %}selected{% endif %}>Asignado</option>
+                <option value="Instalado" {% if equipo.estado == 'Instalado' %}selected{% endif %}>Instalado</option>
+                <option value="Dañado" {% if equipo.estado == 'Dañado' %}selected{% endif %}>Dañado</option>
+            </select>
+        </div>
+        <div class="flex justify-end space-x-4 mt-6">
+            <a href="{{ url_for('inventario_admin') }}" class="btn-danger">Cancelar</a>
+            <button type="submit" class="btn-primary">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

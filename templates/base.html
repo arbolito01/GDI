@@ -12,30 +12,35 @@
 <body>
   {% block header %}
   <header class="main-header">
-    <nav class="main-nav">
-  <a href="{{ url_for('index') }}" class="brand-logo">Gestor de Instalaciones</a>
-  <div class="nav-links">
-    {% if 'id_usuario' in session %}
-      <span class="welcome-message">Hola, {{ session.nombre }}</span>
-      {% if session.get('es_admin') %}
-        <a href="{{ url_for('admin') }}" class="nav-link nav-button">Panel de Admin</a>
-    <a href="{{ url_for('gestion_tareas') }}" class="nav-link nav-button">Gestión de Tareas</a>
-    <a href="{{ url_for('nueva_instalacion') }}" class="nav-link nav-button">Nueva Instalación</a>
-    <a href="{{ url_for('admin_tareas_calendario') }}" class="nav-link nav-button">Calendario de Tareas</a>
-
-
-      {% else %}
-        <a href="{{ url_for('mis_tareas') }}" class="nav-link nav-button">Mis Tareas</a>
-        <a href="{{ url_for('mis_tareas_completadas') }}" class="nav-link nav-button">Tareas Completadas</a>
-        <a href="{{ url_for('mis_tareas_completadas_calendario') }}" class="nav-link nav-button">Calendario de Tareas</a>
-        <a href="{{ url_for('mis_reservas') }}" class="nav-link nav-button">Mis Reservas</a>
-      {% endif %}
-      <a href="{{ url_for('logout') }}" class="nav-link nav-button logout-button">Cerrar Sesión</a>
-    {% else %}
-      <a href="{{ url_for('login') }}" class="nav-link nav-button">Iniciar Sesión</a>
-      <a href="{{ url_for('registro') }}" class="nav-link nav-button">Registrarse</a>
-    {% endif %}
-  </div>
+<nav class="main-nav">
+    <a href="{{ url_for('index') }}" class="brand-logo">Gestor de Instalaciones</a>
+    <div class="nav-links">
+        {% if 'id_usuario' in session %}
+            <span class="welcome-message">Hola, {{ session.nombre }}</span>
+            {% if session.get('es_admin') %}
+                <a href="{{ url_for('admin') }}" class="nav-link nav-button">Panel de Admin</a>
+                <a href="{{ url_for('gestion_tareas') }}" class="nav-link nav-button">Gestión de Tareas</a>
+                <a href="{{ url_for('nueva_instalacion') }}" class="nav-link nav-button">Nueva Instalación</a>
+                <a href="{{ url_for('admin_tareas_calendario') }}" class="nav-link nav-button">Calendario de Tareas</a>
+                <a href="{{ url_for('inventario_admin') }}" class="nav-link nav-button">Gestión de Inventario</a>
+            {% else %}
+                <a href="{{ url_for('tecnico_dashboard') }}" class="nav-link nav-button">Mi Dashboard</a>
+                <a href="{{ url_for('mis_tareas') }}" class="nav-link nav-button">Mis Tareas</a>
+                <a href="{{ url_for('mis_tareas_completadas') }}" class="nav-link nav-button">Tareas Completadas</a>
+                <a href="{{ url_for('mis_tareas_completadas_calendario') }}" class="nav-link nav-button">Calendario de Tareas</a>
+                <a href="{{ url_for('mis_reservas') }}" class="nav-link nav-button">Mis Reservas</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="nav-link nav-button logout-button">Cerrar Sesión</a>
+        {% elif 'id_cliente_usuario' in session %}
+            <span class="welcome-message">Hola, {{ session.nombre_cliente }}</span>
+            <a href="{{ url_for('cliente_dashboard') }}" class="nav-link nav-button">Mi Dashboard</a>
+            <a href="{{ url_for('cliente_logout') }}" class="nav-link nav-button logout-button">Cerrar Sesión</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link nav-button">Iniciar Sesión (Empleados)</a>
+            <a href="{{ url_for('registro') }}" class="nav-link nav-button">Registrarse (Empleados)</a>
+            <a href="{{ url_for('cliente_login') }}" class="nav-link nav-button">Iniciar Sesión (Clientes)</a>
+        {% endif %}
+    </div>
 </nav>
   </header>
   {% endblock %}
@@ -50,38 +55,40 @@
     </footer>
   </div>
   
-  {% block scripts %}{% endblock %}
-</body>
-<script>
-  function filtrarPorFecha() {
-    const fechaInicioStr = document.getElementById('fecha_inicio').value;
-    const fechaFinStr = document.getElementById('fecha_fin').value;
-
-    const fechaInicio = fechaInicioStr ? new Date(fechaInicioStr) : null;
-    const fechaFin = fechaFinStr ? new Date(fechaFinStr) : null;
-
-    const filas = document.getElementById('tabla-instalaciones').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-
-    for (let i = 0; i < filas.length; i++) {
-      const fila = filas[i];
-      const celdaFecha = fila.getElementsByTagName('td')[5]; // La sexta celda es la de la fecha
-      if (celdaFecha) {
-        const fechaCeldaStr = celdaFecha.innerText;
-        const partesFecha = fechaCeldaStr.split('/');
-        const fechaCelda = new Date(partesFecha[2], partesFecha[1] - 1, partesFecha[0]);
-        
-        let mostrarFila = true;
-
-        if (fechaInicio && fechaCelda < fechaInicio) {
-          mostrarFila = false;
+  {% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function filtrarPorFecha() {
+      const fechaInicioStr = document.getElementById('fecha_inicio').value;
+      const fechaFinStr = document.getElementById('fecha_fin').value;
+  
+      const fechaInicio = fechaInicioStr ? new Date(fechaInicioStr) : null;
+      const fechaFin = fechaFinStr ? new Date(fechaFinStr) : null;
+  
+      const filas = document.getElementById('tabla-instalaciones').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+  
+      for (let i = 0; i < filas.length; i++) {
+        const fila = filas[i];
+        const celdaFecha = fila.getElementsByTagName('td')[5]; // La sexta celda es la de la fecha
+        if (celdaFecha) {
+          const fechaCeldaStr = celdaFecha.innerText;
+          const partesFecha = fechaCeldaStr.split('/');
+          const fechaCelda = new Date(partesFecha[2], partesFecha[1] - 1, partesFecha[0]);
+          
+          let mostrarFila = true;
+  
+          if (fechaInicio && fechaCelda < fechaInicio) {
+            mostrarFila = false;
+          }
+          if (fechaFin && fechaCelda > fechaFin) {
+            mostrarFila = false;
+          }
+  
+          fila.style.display = mostrarFila ? '' : 'none';
         }
-        if (fechaFin && fechaCelda > fechaFin) {
-          mostrarFila = false;
-        }
-
-        fila.style.display = mostrarFila ? '' : 'none';
       }
     }
-  }
-</script>
+  </script>
+  {% endblock %}
+</body>
 </html>

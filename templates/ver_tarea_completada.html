@@ -60,16 +60,22 @@
                     <label class="form-label font-bold">Ubicación Final (GPS):</label>
                     <p>{{ tarea.ubicacion_gps_final or 'No hay ubicación final.' }}</p>
                 </div>
-                {% if tarea.foto_adjunta %}
-                    <div class="form-group col-span-2">
-                        <label class="form-label font-bold">Foto de la Instalación:</label>
-                        <img src="{{ url_for('static', filename='uploads/' + tarea.foto_adjunta.split('/')[-1]) }}" alt="Foto de la instalación completada" class="mt-2 rounded-lg shadow-md" style="max-width: 100%; height: auto;">
-                    </div>
-                {% else %}
-                    <div class="form-group col-span-2">
-                        <p class="text-gray-500">No hay foto adjunta.</p>
-                    </div>
-                {% endif %}
+              {% if instalacion.foto_adjunta %}
+    <div class="info-group">
+        <strong>Fotos de la Instalación:</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+        {% set fotos = instalacion.foto_adjunta | from_json %}
+        {% for foto in fotos %}
+            <img src="{{ url_for('static', filename=foto) }}" alt="Foto de la instalación" style="max-width: 100%; height: auto; border-radius: 8px;">
+        {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="info-group">
+        <strong>Foto de la Instalación:</strong>
+        <p>No hay foto adjunta.</p>
+    </div>
+{% endif %}
             </div>
         </div>
     </div>

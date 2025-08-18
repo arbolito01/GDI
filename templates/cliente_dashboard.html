@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Dashboard - Cliente{% endblock %}
+
+{% block header %}
+<header class="main-header">
+    <nav class="main-nav">
+        <a href="{{ url_for('cliente_dashboard') }}" class="brand-logo">Gestor de Instalaciones</a>
+        <div class="nav-links">
+            <span class="welcome-message">Hola, {{ session.nombre_cliente }}</span>
+            <a href="{{ url_for('cliente_dashboard') }}" class="nav-link nav-button">Mi Dashboard</a>
+            <a href="{{ url_for('cliente_logout') }}" class="nav-link nav-button logout-button">Cerrar Sesión</a>
+        </div>
+    </nav>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-section">
+    <h1>Dashboard de Cliente</h1>
+    <p>Bienvenido, {{ cliente.nombre }}. Aquí puedes ver tus instalaciones y reportar problemas.</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flash-messages">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+<div class="dashboard-section">
+    <h2>Mis Instalaciones</h2>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre de Instalación</th>
+                    <th>Estado de Tarea</th>
+                    <th>Fecha de Creación</th>
+                    <th>Ubicación</th>
+                    <th>N.º de Serie</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for instalacion in instalaciones %}
+                <tr>
+                    <td>{{ instalacion.nombre }}</td>
+                    <td><span class="status-badge {{ instalacion.estado_tarea | lower }}">{{ instalacion.estado_tarea }}</span></td>
+                    <td>{{ instalacion.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ instalacion.ubicacion_gps }}</td>
+                    <td>{{ instalacion.numero_serie if instalacion.numero_serie else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="dashboard-section">
+    <h2>Reportar un Problema</h2>
+    <form action="{{ url_for('cliente_dashboard') }}" method="POST" class="form-container">
+        <div class="form-group">
+            <label for="id_instalacion">Selecciona la Instalación con el Problema:</label>
+            <select id="id_instalacion" name="id_instalacion" required class="form-select">
+                <option value="">Selecciona una instalación</option>
+                {% for instalacion in instalaciones %}
+                <option value="{{ instalacion.id_instalacion }}">{{ instalacion.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="descripcion_problema">Describe el Problema:</label>
+            <textarea id="descripcion_problema" name="descripcion_problema" rows="4" required class="form-textarea"></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Enviar Reporte</button>
+    </form>
+</div>
+{% endblock %}  

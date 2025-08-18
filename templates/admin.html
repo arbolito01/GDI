@@ -16,6 +16,21 @@
         {% endif %}
     {% endwith %}
 
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tareas por Estado</h3>
+            <canvas id="tareasPorEstadoChart"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Top Técnicos (Tareas Completadas)</h3>
+            <canvas id="topTecnicosChart"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tareas por Tipo</h3>
+            <canvas id="tareasPorTipoChart"></canvas>
+        </div>
+    </div>
+    
     <div class="filter-controls mt-6 mb-4">
         <label for="fecha_inicio">Fecha de inicio:</label>
         <input type="date" id="fecha_inicio">
@@ -122,4 +137,76 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/admin_stats')
+            .then(response => response.json())
+            .then(data => {
+                // Gráfico de Tareas por Estado
+                const estadoLabels = data.tareas_por_estado.map(item => item.estado);
+                const estadoData = data.tareas_por_estado.map(item => item.count);
+                new Chart(
+                    document.getElementById('tareasPorEstadoChart'),
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: estadoLabels,
+                            datasets: [{
+                                label: 'Tareas por Estado',
+                                data: estadoData,
+                                backgroundColor: ['#FFC107', '#28A745', '#DC3545', '#4A90E2'],
+                            }]
+                        }
+                    }
+                );
+
+                // Gráfico de Tareas Completadas por Técnico
+                const tecnicoLabels = data.tareas_completadas_por_tecnico.map(item => item.nombre);
+                const tecnicoData = data.tareas_completadas_por_tecnico.map(item => item.count);
+                new Chart(
+                    document.getElementById('topTecnicosChart'),
+                    {
+                        type: 'bar',
+                        data: {
+                            labels: tecnicoLabels,
+                            datasets: [{
+                                label: 'Tareas Completadas',
+                                data: tecnicoData,
+                                backgroundColor: '#4A90E2',
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    }
+                );
+
+                // Gráfico de Tareas por Tipo
+                const tipoLabels = data.tareas_por_tipo.map(item => item.tipo_tarea);
+                const tipoData = data.tareas_por_tipo.map(item => item.count);
+                new Chart(
+                    document.getElementById('tareasPorTipoChart'),
+                    {
+                        type: 'pie',
+                        data: {
+                            labels: tipoLabels,
+                            datasets: [{
+                                label: 'Tareas por Tipo',
+                                data: tipoData,
+                                backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#4a90e2'],
+                            }]
+                        }
+                    }
+                );
+            });
+    });
+</script>
 {% endblock %}

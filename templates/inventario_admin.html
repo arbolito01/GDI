@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario de Equipos{% endblock %}
+
+{% block content %}
+<div class="main-content-card">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Inventario de Equipos</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes mb-4">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="form-section-title">Agregar Nuevo Equipo</h2>
+            <form action="{{ url_for('inventario_agregar') }}" method="POST" class="space-y-4">
+                <div class="form-group">
+                    <label for="numero_serie">Número de Serie:</label>
+                    <input type="text" id="numero_serie" name="numero_serie" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="modelo">Modelo:</label>
+                    <input type="text" id="modelo" name="modelo" class="form-input" required>
+                </div>
+                <button type="submit" class="btn-primary w-full">Añadir Equipo</button>
+            </form>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="form-section-title">Equipos Existentes</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-lg shadow-md mt-4">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">N.º de Serie</th>
+                            <th class="py-3 px-6 text-left">Modelo</th>
+                            <th class="py-3 px-6 text-left">Estado</th>
+                            <th class="py-3 px-6 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600 text-sm font-light">
+                        {% for equipo in inventario %}
+                        <tr class="border-b border-gray-200 hover:bg-gray-100">
+                            <td class="py-3 px-6 text-left whitespace-nowrap">{{ equipo.numero_serie }}</td>
+                            <td class="py-3 px-6 text-left">{{ equipo.modelo }}</td>
+                            <td class="py-3 px-6 text-left">
+                                <span class="py-1 px-3 rounded-full text-xs font-semibold
+                                    {% if equipo.estado == 'Disponible' %}bg-green-200 text-green-600{% elif equipo.estado == 'Asignado' %}bg-yellow-200 text-yellow-600{% else %}bg-red-200 text-red-600{% endif %}">
+                                    {{ equipo.estado }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-6 text-center whitespace-nowrap">
+                                <a href="{{ url_for('inventario_editar', id=equipo.id_equipo) }}" class="text-blue-500 hover:text-blue-700 mx-1">Editar</a>
+                                <form action="{{ url_for('inventario_eliminar', id=equipo.id_equipo) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este equipo?');">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 mx-1">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
