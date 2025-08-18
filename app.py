@@ -13,9 +13,13 @@ from routeros_api import RouterOsApiPool
 import pandas as pd
 from io import BytesIO
 from flask import send_file
+import csv
+from io import StringIO
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
+# Variable global para almacenar los datos importados
+imported_clients_data = []
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'tu_clave_secreta_aqui')
@@ -714,58 +718,106 @@ def api_mikrotik_users():
     return jsonify(usuarios_mikrotik)
 
 
-# --- NUEVA FUNCIÓN: Reparación/Migración ---
+@app.route('/importar_clientes', methods=['GET', 'POST'])
+@admin_required
+def importar_clientes():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No se seleccionó ningún archivo', 'error')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            flash('No se seleccionó ningún archivo', 'error')
+            return redirect(request.url)
+        if file and file.filename.endswith('.csv'):
+            try:
+                conexion = get_db_connection()
+                cursor = conexion.cursor()
+                stream = StringIO(file.stream.read().decode("UTF8"), newline=None)
+                reader = csv.reader(stream)
+                header = next(reader)
+                
+                try:
+                    cliente_idx = header.index('CLIENTE')
+                    dni_idx = header.index('DNI')
+                    direccion_idx = header.index('DIRECCION')
+                    telefono_idx = header.index('TELEFONO')
+                    plan_idx = header.index('PLAN')
+                except ValueError as e:
+                    flash(f'Error: El archivo CSV no tiene las columnas esperadas: {e}', "error")
+                    return redirect(request.url)
+
+                for row in reader:
+                    sql = "INSERT INTO clientes (nombre, dni, direccion, telefono, plan) VALUES (%s, %s, %s, %s, %s)"
+                    valores = (row[cliente_idx], row[dni_idx], row[direccion_idx], row[telefono_idx], row[plan_idx])
+                    cursor.execute(sql, valores)
+                
+                conexion.commit()
+                flash("Clientes importados con éxito desde el archivo CSV a la base de datos.", "success")
+                return redirect(url_for('reparacion_migracion'))
+            except mysql.connector.Error as err:
+                flash(f"Error al importar clientes: {err}", "error")
+            finally:
+                if 'conexion' in locals() and conexion.is_connected():
+                    cursor.close()
+                    conexion.close()
+        else:
+            flash('Tipo de archivo no permitido. Por favor, sube un archivo CSV.', 'error')
+            return redirect(request.url)
+    
+    return render_template('importar_clientes.html')
+
+
 @app.route('/reparacion_migracion', methods=['GET', 'POST'])
 @admin_required
 def reparacion_migracion():
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
     
-    if request.method == 'POST':
-        nombre_cliente = request.form.get('nombre_cliente')
-        tipo_servicio = request.form.get('tipo_servicio')
-        telefono_cliente = request.form.get('telefono_cliente')
-        tipo_tarea = request.form.get('tipo_tarea')
-        id_usuario_asignado = request.form.get('id_usuario_asignado')
-        descripcion = request.form.get('descripcion')
-        
-        # En este punto, se simularía la recuperación de datos del MikroTik
-        # Como no es posible, se usan los datos del formulario
-        
-        try:
-            # Insertar los datos en la tabla 'instalaciones' como una solicitud pendiente
-            sql_insert_instalacion = """
-                INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
-            cursor.execute(sql_insert_instalacion, valores_instalacion)
-            id_instalacion_creada = cursor.lastrowid
+    try:
+        if request.method == 'POST':
+            nombre_cliente = request.form.get('nombre_cliente')
+            tipo_servicio = request.form.get('tipo_servicio')
+            telefono_cliente = request.form.get('telefono_cliente')
+            tipo_tarea = request.form.get('tipo_tarea')
+            id_usuario_asignado = request.form.get('id_usuario_asignado')
+            descripcion = request.form.get('descripcion')
             
-            # Crear la tarea en la tabla 'tareas' para el técnico asignado
-            sql_insert_tarea = """
-                INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
-            cursor.execute(sql_insert_tarea, valores_tarea)
-            
-            conexion.commit()
-            flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
-            return redirect(url_for('admin'))
-        except mysql.connector.Error as err:
-            flash(f"Error al asignar la tarea: {err}", "error")
-        finally:
-            if 'conexion' in locals() and conexion.is_connected():
-                cursor.close()
-                conexion.close()
+            try:
+                sql_insert_instalacion = """
+                    INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """
+                valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
+                cursor.execute(sql_insert_instalacion, valores_instalacion)
+                id_instalacion_creada = cursor.lastrowid
                 
-    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
-    usuarios_no_admin = cursor.fetchall()
-    
-    cursor.close()
-    conexion.close()
-    return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin)
+                sql_insert_tarea = """
+                    INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
+                cursor.execute(sql_insert_tarea, valores_tarea)
+                
+                conexion.commit()
+                flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
+                return redirect(url_for('admin'))
+            except mysql.connector.Error as err:
+                flash(f"Error al asignar la tarea: {err}", "error")
+
+        cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
+        usuarios_no_admin = cursor.fetchall()
+        
+        # OBTENEMOS LOS CLIENTES DE LA NUEVA TABLA
+        cursor.execute("SELECT nombre, plan as service, telefono as phone FROM clientes ORDER BY nombre")
+        clientes_importados = cursor.fetchall()
+        
+        return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin, imported_users=clientes_importados)
+
+    finally:
+        if 'conexion' in locals() and conexion.is_connected():
+            cursor.close()
+            conexion.close()
 
 # --- Rutas para detalles y reservas ---
 @app.route('/instalacion/<int:id>')
@@ -1256,6 +1308,8 @@ def rechazar_traspaso(id_solicitud):
     
     return redirect(url_for('index'))
 
+
+
 # --- Inicio de la aplicación ---
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)  
+    app.run(debug=True, host='0.0.0.0', port=5000)

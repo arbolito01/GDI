@@ -44,13 +44,23 @@
         <h2 class="form-section-title mt-6">Detalles del Cliente</h2>
         
         <div class="form-group">
+            <label for="cliente_existente" class="form-label">Seleccionar Cliente Existente</label>
+            <select id="cliente_existente" class="form-select">
+                <option value="">Selecciona un cliente</option>
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.nombre }}" data-telefono="{{ cliente.telefono }}" data-referencia="{{ cliente.direccion }}">{{ cliente.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
             <label for="dni" class="form-label">DNI</label>
             <div style="display: flex; gap: 10px;">
                 <input type="text" id="dni" class="form-input" placeholder="Ingresa el DNI...">
                 <button type="button" id="search_dni_button" class="btn btn-primary">Buscar</button>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label for="nombre_cliente" class="form-label">Nombre del Cliente</label>
             <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-input" required>
@@ -111,6 +121,8 @@
     const searchDniButton = document.getElementById('search_dni_button');
     const dniInput = document.getElementById('dni');
     const nombreClienteInput = document.getElementById('nombre_cliente');
+    const telefonoClienteInput = document.getElementById('telefono_cliente');
+    const referenciaInput = document.getElementById('referencia');
     
     // Diccionario de descripciones predefinidas
     const descripciones = {
@@ -129,6 +141,22 @@
             descripcionTextarea.value = descripciones[valorSeleccionado];
         } else {
             descripcionTextarea.value = '';
+        }
+    });
+
+    const clienteExistenteSelect = document.getElementById('cliente_existente');
+    clienteExistenteSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value) {
+            nombreClienteInput.value = selectedOption.value;
+            telefonoClienteInput.value = selectedOption.getAttribute('data-telefono');
+            referenciaInput.value = selectedOption.getAttribute('data-referencia');
+            // Limpia el DNI cuando se selecciona un cliente existente
+            dniInput.value = '';
+        } else {
+            nombreClienteInput.value = '';
+            telefonoClienteInput.value = '';
+            referenciaInput.value = '';
         }
     });
 
@@ -178,8 +206,8 @@
         document.getElementById('pppoe_password').value = pppoe;
         
         // Muestra los valores generados en la interfaz de usuario
-        document.getElementById('codigo_cliente_display').innerText = codigo;
-        document.getElementById('pppoe_password_display').innerText = pppoe;
+        // document.getElementById('codigo_cliente_display').innerText = codigo;
+        // document.getElementById('pppoe_password_display').innerText = pppoe;
     }
 
     // Código de Google Maps y geolocalización...

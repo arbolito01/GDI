@@ -9,22 +9,35 @@
 
 <div class="container">
     <h1>Asignar Tarea de Reparación/Migración</h1>
-    <form action="{{ url_for('reparacion_migracion') }}" method="POST" class="form-reserva">
+    
+    <div class="main-content-card">
+        <h2 class="form-section-title">Importar Clientes</h2>
+        <form action="{{ url_for('importar_clientes') }}" method="post" enctype="multipart/form-data" class="space-y-4">
+            <div class="form-group">
+                <label for="file" class="form-label">Selecciona un archivo CSV (.csv)</label>
+                <input type="file" id="file" name="file" class="form-file" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn-primary w-full">Importar Archivo CSV</button>
+        </form>
+    </div>
+
+    <form action="{{ url_for('reparacion_migracion') }}" method="POST" class="form-reserva mt-8">
         
         <h2 class="form-section-title">Datos del Cliente</h2>
+
         <div class="form-group">
-            <label for="search_input">Buscar Usuario:</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="search_input" class="form-input" placeholder="Ingresa nombre de usuario...">
-                <button type="button" id="search_button" class="btn btn-primary">Buscar</button>
-            </div>
+            <label for="cliente_search">Buscar Cliente:</label>
+            <input type="text" id="cliente_search" class="form-input" placeholder="Escribe el nombre del cliente...">
+            <datalist id="clientes-list">
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.username }}" data-service="{{ cliente.service }}" data-phone="{{ cliente.phone }}">
+                {% endfor %}
+            </datalist>
         </div>
 
         <div class="form-group">
-            <label for="nombre_cliente">Nombre de Usuario (Seleccionado):</label>
-            <select id="nombre_cliente" name="nombre_cliente" class="form-select" required>
-                <option value="">Selecciona un usuario</option>
-            </select>
+            <label for="nombre_cliente">Nombre de Cliente (Seleccionado):</label>
+            <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-input" readonly required>
         </div>
 
         <div class="form-group">
@@ -39,17 +52,16 @@
         <h2 class="form-section-title">Detalles de la Tarea</h2>
         <div class="form-group">
             <label for="tipo_tarea">Tipo de Tarea:</label>
-            <select id="tipo_tarea" name="tipo_tarea" required>
-    <option value="Reparacion">Reparación</option>
-    <option value="Migracion">Migración</option>
-    <option value="Traslado">Traslado</option>
-</select>
-</select>
+            <select id="tipo_tarea" name="tipo_tarea" class="form-select" required>
+                <option value="Reparacion">Reparación</option>
+                <option value="Migracion">Migración</option>
+                <option value="Traslado">Traslado</option>
+            </select>
         </div>
         
         <div class="form-group">
             <label for="id_usuario_asignado">Asignar a:</label>
-            <select id="id_usuario_asignado" name="id_usuario_asignado" required>
+            <select id="id_usuario_asignado" name="id_usuario_asignado" class="form-select" required>
                 {% for usuario in usuarios_no_admin %}
                     <option value="{{ usuario.id_usuario }}">{{ usuario.nombre }}</option>
                 {% endfor %}
@@ -68,59 +80,31 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('search_input');
-        const searchButton = document.getElementById('search_button');
-        const selectUsuario = document.getElementById('nombre_cliente');
-        const inputServicio = document.getElementById('tipo_servicio');
-        const inputTelefono = document.getElementById('telefono_cliente');
-        let allUsers = [];
+        const searchInput = document.getElementById('cliente_search');
+        const nombreClienteInput = document.getElementById('nombre_cliente');
+        const tipoServicioInput = document.getElementById('tipo_servicio');
+        const telefonoClienteInput = document.getElementById('telefono_cliente');
+        const datalist = document.getElementById('clientes-list');
 
-        function fetchUsers(query = '') {
-            let url = '/api/mikrotik_users';
-            if (query) {
-                url += `?q=${query}`;
+        function updateClientInfo(selectedUsername) {
+            const selectedOption = datalist.querySelector(`option[value="${selectedUsername}"]`);
+            if (selectedOption) {
+                nombreClienteInput.value = selectedUsername;
+                tipoServicioInput.value = selectedOption.getAttribute('data-service') || '';
+                telefonoClienteInput.value = selectedOption.getAttribute('data-phone') || '';
+            } else {
+                nombreClienteInput.value = '';
+                tipoServicioInput.value = '';
+                telefonoClienteInput.value = '';
             }
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    allUsers = data;
-                    updateSelectOptions(data);
-                })
-                .catch(error => {
-                    console.error('Error al cargar usuarios:', error);
-                    selectUsuario.innerHTML = '<option value="">Error al cargar usuarios</option>';
-                });
         }
 
-        function updateSelectOptions(users) {
-            selectUsuario.innerHTML = '<option value="">Selecciona un usuario</option>';
-            users.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.username;
-                option.textContent = user.username;
-                selectUsuario.appendChild(option);
-            });
-        }
-
-        searchButton.addEventListener('click', () => {
-            const query = searchInput.value;
-            fetchUsers(query);
+        searchInput.addEventListener('input', function() {
+            updateClientInfo(this.value);
         });
         
-        selectUsuario.addEventListener('change', function() {
-            const selectedUser = allUsers.find(user => user.username === this.value);
-            if (selectedUser) {
-                inputServicio.value = selectedUser.service;
-                inputTelefono.value = selectedUser.phone;
-            } else {
-                inputServicio.value = '';
-                inputTelefono.value = '';
-            }
-        });
-
-        // Cargar todos los usuarios al inicio
-        fetchUsers();
+        // Cargar los clientes en el datalist al inicio
+        // La lista de clientes ya viene precargada desde el backend, no se necesita una llamada fetch inicial
     });
 </script>
 {% endblock %}
