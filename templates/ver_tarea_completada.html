@@ -60,12 +60,12 @@
                     <label class="form-label font-bold">Ubicación Final (GPS):</label>
                     <p>{{ tarea.ubicacion_gps_final or 'No hay ubicación final.' }}</p>
                 </div>
-              {% if instalacion.foto_adjunta %}
+              {% if tarea.foto_adjunta %}
     <div class="info-group">
         <strong>Fotos de la Instalación:</strong>
         <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
-        {% set fotos = instalacion.foto_adjunta | from_json %}
-        {% for foto in fotos %}
+         {% set fotos = tarea.foto_adjunta | from_json %}
+    {% for foto in fotos %}
             <img src="{{ url_for('static', filename=foto) }}" alt="Foto de la instalación" style="max-width: 100%; height: auto; border-radius: 8px;">
         {% endfor %}
         </div>

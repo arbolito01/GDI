@@ -24,15 +24,30 @@
     <form action="{{ url_for('reparacion_migracion') }}" method="POST" class="form-reserva mt-8">
         
         <h2 class="form-section-title">Datos del Cliente</h2>
-
         <div class="form-group">
             <label for="cliente_search">Buscar Cliente:</label>
-            <input type="text" id="cliente_search" class="form-input" placeholder="Escribe el nombre del cliente...">
-            <datalist id="clientes-list">
-                {% for cliente in clientes %}
-                    <option value="{{ cliente.username }}" data-service="{{ cliente.service }}" data-phone="{{ cliente.phone }}">
-                {% endfor %}
-            </datalist>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="cliente_search" class="form-input" placeholder="Escribe el nombre o teléfono del cliente...">
+                <button type="button" id="search_button" class="btn-primary">Buscar</button>
+            </div>
+        </div>
+
+        <div id="search-results-container" style="margin-top: 20px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Servicio</th>
+                        <th>Teléfono</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="search-results-body">
+                    <tr>
+                        <td colspan="4" class="text-center">Usa el buscador de arriba para encontrar clientes.</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="form-group">
@@ -81,30 +96,58 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('cliente_search');
+        const searchButton = document.getElementById('search_button');
+        const resultsBody = document.getElementById('search-results-body');
         const nombreClienteInput = document.getElementById('nombre_cliente');
         const tipoServicioInput = document.getElementById('tipo_servicio');
         const telefonoClienteInput = document.getElementById('telefono_cliente');
-        const datalist = document.getElementById('clientes-list');
 
-        function updateClientInfo(selectedUsername) {
-            const selectedOption = datalist.querySelector(`option[value="${selectedUsername}"]`);
-            if (selectedOption) {
-                nombreClienteInput.value = selectedUsername;
-                tipoServicioInput.value = selectedOption.getAttribute('data-service') || '';
-                telefonoClienteInput.value = selectedOption.getAttribute('data-phone') || '';
-            } else {
-                nombreClienteInput.value = '';
-                tipoServicioInput.value = '';
-                telefonoClienteInput.value = '';
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                resultsBody.innerHTML = '<tr><td colspan="4" class="text-center">Escribe al menos 2 caracteres para buscar.</td></tr>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/clientes?q=${query}`);
+                const clients = await response.json();
+                
+                resultsBody.innerHTML = '';
+                if (clients.length === 0) {
+                    resultsBody.innerHTML = '<tr><td colspan="4" class="text-center">No se encontraron clientes.</td></tr>';
+                } else {
+                    clients.forEach(client => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${client.nombre}</td>
+                            <td>${client.service || 'N/A'}</td>
+                            <td>${client.phone || 'N/A'}</td>
+                            <td><button type="button" class="btn-primary" onclick="selectClient('${client.nombre}', '${client.service}', '${client.phone}')">Seleccionar</button></td>
+                        `;
+                        resultsBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching clients:', error);
+                resultsBody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500">Error al buscar clientes.</td></tr>';
             }
         }
-
-        searchInput.addEventListener('input', function() {
-            updateClientInfo(this.value);
-        });
         
-        // Cargar los clientes en el datalist al inicio
-        // La lista de clientes ya viene precargada desde el backend, no se necesita una llamada fetch inicial
+        window.selectClient = function(nombre, servicio, telefono) {
+            nombreClienteInput.value = nombre;
+            tipoServicioInput.value = servicio;
+            telefonoClienteInput.value = telefono;
+            alert(`Cliente "${nombre}" seleccionado.`);
+        };
+        
+        searchButton.addEventListener('click', performSearch);
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
     });
 </script>
 {% endblock %}

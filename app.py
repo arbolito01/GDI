@@ -17,9 +17,9 @@ import csv
 from io import StringIO
 import logging
 
-# NUEVOS IMPORTS
+# Se importa la función del servicio para la notificación por WhatsApp
 from database import get_db_connection
-from services import create_new_installation
+from services import create_new_installation, send_whatsapp_notification
 
 
 # Configuración del logger
@@ -86,6 +86,16 @@ def instalador_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Decorador para restringir el acceso solo a clientes logueados
+def cliente_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'id_cliente_usuario' not in session:
+            flash("Por favor, inicia sesión para acceder a esta página.", "error")
+            return redirect(url_for('cliente_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # --- Rutas de Autenticación ---
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
@@ -93,13 +103,16 @@ def registro():
         nombre = request.form['nombre']
         email = request.form['email']
         password = request.form['password']
+        direccion = request.form.get('direccion')
+        telefono = request.form.get('telefono')
+        dni = request.form.get('dni')
         hashed_password = generate_password_hash(password)
 
         try:
             conexion = get_db_connection()
             cursor = conexion.cursor()
-            sql = "INSERT INTO usuarios (nombre, email, password, es_admin) VALUES (%s, %s, %s, 0)"
-            valores = (nombre, email, hashed_password)
+            sql = "INSERT INTO usuarios (nombre, email, password, es_admin, direccion, telefono, dni) VALUES (%s, %s, %s, 0, %s, %s, %s)"
+            valores = (nombre, email, hashed_password, direccion, telefono, dni)
             cursor.execute(sql, valores)
             conexion.commit()
             flash("Registro exitoso. ¡Inicia sesión ahora!", "success")
@@ -146,6 +159,91 @@ def logout():
     session.pop('es_admin', None) 
     flash("Has cerrado sesión correctamente.", "success")
     return redirect(url_for('login'))
+
+@app.route('/cliente/registro', methods=['GET', 'POST'])
+def cliente_registro():
+    if request.method == 'POST':
+        dni = request.form['dni']
+        email = request.form['email']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password)
+
+        conexion = get_db_connection()
+        cursor = conexion.cursor(dictionary=True)
+        
+        try:
+            # 1. Verificar si el DNI existe en la tabla de clientes
+            cursor.execute("SELECT id_cliente FROM clientes WHERE dni = %s", (dni,))
+            cliente = cursor.fetchone()
+            if not cliente:
+                flash("El DNI no está registrado en nuestra base de datos. Por favor, contacte a soporte.", "error")
+                return redirect(url_for('cliente_registro'))
+
+            id_cliente = cliente['id_cliente']
+
+            # 2. Verificar si ya existe una cuenta de usuario con ese email
+            cursor.execute("SELECT id_cliente_usuario FROM clientes_usuarios WHERE email = %s", (email,))
+            if cursor.fetchone():
+                flash("Ya existe una cuenta con este correo electrónico. Por favor, inicie sesión.", "error")
+                return redirect(url_for('cliente_registro'))
+
+            # 3. Crear el nuevo usuario
+            sql = "INSERT INTO clientes_usuarios (id_cliente, email, password) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (id_cliente, email, hashed_password))
+            conexion.commit()
+            
+            flash("Registro exitoso. ¡Inicie sesión ahora!", "success")
+            return redirect(url_for('cliente_login'))
+        
+        except Exception as e:
+            conexion.rollback()
+            logging.error(f"Error en el registro de cliente: {e}")
+            flash("Ocurrió un error al registrarse. Por favor, inténtelo de nuevo.", "error")
+            return redirect(url_for('cliente_registro'))
+        finally:
+            cursor.close()
+            conexion.close()
+            
+    return render_template('cliente_registro.html')
+
+@app.route('/cliente/login', methods=['GET', 'POST'])
+def cliente_login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        conexion = get_db_connection()
+        cursor = conexion.cursor(dictionary=True)
+        
+        try:
+            sql = "SELECT cu.id_cliente_usuario, cu.password, c.nombre FROM clientes_usuarios cu JOIN clientes c ON cu.id_cliente = c.id_cliente WHERE cu.email = %s"
+            cursor.execute(sql, (email,))
+            usuario_cliente = cursor.fetchone()
+            
+            if usuario_cliente and check_password_hash(usuario_cliente['password'], password):
+                session['id_cliente_usuario'] = usuario_cliente['id_cliente_usuario']
+                session['nombre_cliente'] = usuario_cliente['nombre']
+                flash(f"¡Bienvenido, {usuario_cliente['nombre']}!", "success")
+                return redirect(url_for('cliente_dashboard'))
+            else:
+                flash('Credenciales incorrectas.', "error")
+                return render_template('cliente_login.html')
+        except Exception as e:
+            logging.error(f"Error en el login de cliente: {e}")
+            flash("Ocurrió un error. Por favor, inténtelo de nuevo.", "error")
+            return redirect(url_for('cliente_login'))
+        finally:
+            cursor.close()
+            conexion.close()
+            
+    return render_template('cliente_login.html')
+
+@app.route('/cliente/logout')
+def cliente_logout():
+    session.pop('id_cliente_usuario', None)
+    session.pop('nombre_cliente', None)
+    flash("Has cerrado sesión correctamente.", "success")
+    return redirect(url_for('cliente_login'))
 
 # --- Rutas del Panel de Administración ---
 @app.route('/admin')
@@ -200,7 +298,6 @@ def nueva_instalacion():
     tipos_instalacion = [row['nombre'] for row in cursor.fetchall()]
 
     if request.method == 'POST':
-        # Obtener datos del formulario
         nombre_instalacion = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
         hora_solicitada = request.form.get('hora_solicitada')
@@ -222,7 +319,6 @@ def nueva_instalacion():
                 file.save(full_path)
                 imagen_url = os.path.join('uploads', filename).replace('\\', '/')
 
-        # Llamar a la función de servicio para crear la instalación y el cliente
         success, message = create_new_installation(
             nombre_instalacion, descripcion, hora_solicitada, tecnico_asignado_id,
             dni_cliente, nombre_cliente, telefono_cliente, referencia,
@@ -234,10 +330,9 @@ def nueva_instalacion():
             return redirect(url_for('admin'))
         else:
             flash(message, "error")
-            logging.error(message) # Registrar el error
+            logging.error(message)
             return redirect(url_for('nueva_instalacion'))
 
-    # Lógica para el método GET
     return render_template('nueva_instalacion.html', tecnicos=tecnicos, tipos_instalacion=tipos_instalacion, maps_api_key=maps_api_key) 
     
 @app.route('/editar_instalacion/<int:id>', methods=['GET', 'POST'])
@@ -283,15 +378,10 @@ def eliminar_instalacion(id):
         conexion = get_db_connection()
         cursor = conexion.cursor(dictionary=True)
         
-        # Eliminar primero las solicitudes de traspaso asociadas a las tareas de la instalación
-        # La tabla se llama solicitudes_traspaso, pero el campo que relaciona con la tarea es id_tarea
         cursor.execute("DELETE FROM solicitudes_traspaso WHERE id_tarea IN (SELECT id_tarea FROM tareas WHERE id_instalacion = %s)", (id,))
-
-        # Luego eliminar las reservas y tareas asociadas a la instalación
         cursor.execute("DELETE FROM reservas WHERE id_instalacion = %s", (id,))
         cursor.execute("DELETE FROM tareas WHERE id_instalacion = %s", (id,))
         
-        # Finalmente, eliminar la instalación en sí y su imagen
         cursor.execute("SELECT imagen_url FROM instalaciones WHERE id_instalacion = %s", (id,))
         instalacion = cursor.fetchone()
         if instalacion and instalacion['imagen_url'] and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(instalacion['imagen_url']))):
@@ -446,7 +536,6 @@ def index():
     id_usuario = session.get('id_usuario')
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
-    # Consulta las tareas pendientes asignadas al usuario, uniendo las tablas de tareas e instalaciones
     sql = """
         SELECT t.*, i.nombre as nombre_instalacion, c.nombre as nombre_cliente, c.telefono as telefono_cliente
         FROM tareas t
@@ -482,9 +571,7 @@ def mis_tareas():
     conexion.close()
     return render_template('mis_tareas.html', mis_tareas=mis_tareas)
 
-# Reemplaza el bloque 'completar_instalacion' en app.py
-# Reemplaza el bloque 'completar_instalacion' en app.py
-# Reemplaza el bloque 'completar_instalacion' en app.py
+
 @app.route('/completar_instalacion/<int:instalacion_id>', methods=['GET', 'POST'])
 @login_required
 @instalador_required
@@ -492,7 +579,6 @@ def completar_instalacion(instalacion_id):
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
     
-    # Consulta mejorada: verifica si existe una tarea pendiente asignada a este usuario para esta instalación
     sql_tarea = """
         SELECT i.*, t.id_tarea, t.tipo_tarea, t.descripcion as descripcion_tarea, c.telefono as telefono_cliente, c.nombre as nombre_cliente
         FROM instalaciones i
@@ -511,13 +597,11 @@ def completar_instalacion(instalacion_id):
     
     if request.method == 'POST':
         try:
-            # Obtener el ID del equipo seleccionado del formulario
             id_equipo_instalado = request.form.get('id_equipo_instalado')
             if not id_equipo_instalado:
                 flash("Debes seleccionar un equipo del inventario.", "error")
                 return redirect(url_for('completar_instalacion', instalacion_id=instalacion_id))
 
-            # Obtener los demás datos del formulario
             referencia = request.form.get('referencia')
             metodo_pago = request.form.get('metodo_pago')
             numero_transaccion = request.form.get('numero_transaccion')
@@ -530,7 +614,6 @@ def completar_instalacion(instalacion_id):
                 flash("La ubicación GPS es obligatoria.", "error")
                 return redirect(url_for('completar_instalacion', instalacion_id=instalacion_id))
 
-            # Manejar la subida de las fotos
             fotos = request.files.getlist('fotos[]')
             fotos_adjuntas_urls = []
             if not fotos or not fotos[0].filename:
@@ -547,11 +630,9 @@ def completar_instalacion(instalacion_id):
                     flash("Se subió un archivo no permitido. Solo se aceptan imágenes.", "error")
                     return redirect(url_for('completar_instalacion', instalacion_id=instalacion_id))
             
-            # Almacenar las URLs en la base de datos como una cadena JSON
             foto_adjunta_url_final = json.dumps(fotos_adjuntas_urls)
             fecha_completado = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            # Actualizar las tablas
             sql_update_instalacion = """
                 UPDATE instalaciones SET 
                 descripcion_final = %s, 
@@ -570,16 +651,13 @@ def completar_instalacion(instalacion_id):
             )
             cursor.execute(sql_update_instalacion, valores_update_instalacion)
 
-            # Actualizar el estado del equipo en la tabla de inventario
             cursor.execute("UPDATE inventario SET estado = 'Instalado' WHERE id_equipo = %s", (id_equipo_instalado,))
 
-            # Se actualiza el estado de la tarea en la tabla 'tareas'.
             sql_update_tarea = "UPDATE tareas SET estado = 'Completada' WHERE id_tarea = %s"
             cursor.execute(sql_update_tarea, (tarea['id_tarea'],))
             
             conexion.commit()
             
-            # Lógica de la API de WhatsApp con logging
             recipient_number = tarea.get('telefono_cliente')
             if recipient_number:
                 message_text = f"¡Hola {tarea['nombre_cliente']}! Tu instalación de {tarea['nombre']} ha sido completada con éxito. Fecha de finalización: {fecha_completado}."
@@ -622,7 +700,6 @@ def completar_instalacion(instalacion_id):
                 cursor.close()
                 conexion.close()
     
-    # Aquí es para el método GET
     cursor.execute("""
         SELECT * FROM inventario WHERE estado = 'Disponible'
     """)
@@ -632,7 +709,6 @@ def completar_instalacion(instalacion_id):
     conexion.close()
     return render_template('finalizar_tarea.html', tarea=tarea, maps_api_key=os.getenv("Maps_API_KEY"), inventario_disponible=inventario_disponible)
 
-# --- Rutas de Instalador ---
 @app.route('/mis_tareas_completadas')
 @login_required
 @instalador_required
@@ -640,7 +716,6 @@ def mis_tareas_completadas():
     id_usuario = session['id_usuario']
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
-    # Consulta solo las tareas completadas asignadas al usuario
     cursor.execute("""
         SELECT t.*, i.nombre AS nombre_instalacion
         FROM tareas t
@@ -653,27 +728,19 @@ def mis_tareas_completadas():
     conexion.close()
     return render_template('mis_tareas_completadas.html', todas_mis_tareas=todas_mis_tareas)
 
-# --- Rutas API para la nueva funcionalidad ---
 def get_mikrotik_users():
-    """
-    Se conecta al MikroTik y obtiene la lista de usuarios PPPoE secrets.
-    """
     users = []
     
-    # REEMPLAZA ESTOS VALORES CON LOS DE TU ROUTER MIKROTIK
-    router_ip = '10.16.10.1'
-    router_port = 8728 # Puerto de la API
-    router_user = 'api' # Se corrige la mayúscula a minúscula
-    router_password = '1'
+    router_ip_env = os.getenv("ROUTER_IP")
+    router_port_env = int(os.getenv("ROUTER_PORT", '8728'))
+    router_user_env = os.getenv("ROUTER_USER")
+    router_password_env = os.getenv("ROUTER_PASSWORD")
     
     api = None
     api_pool = None
     try:
-        # Pasa el puerto de la API como un argumento separado
-        api_pool = RouterOsApiPool(router_ip, router_user, router_password, port=router_port)
+        api_pool = RouterOsApiPool(router_ip_env, router_user_env, router_password_env, port=router_port_env)
         api = api_pool.get_api()
-            
-        # Obtener los pppoe secrets del router
         pppoe_secrets = api.talk('/ppp/secret/print')
             
         for secret in pppoe_secrets:
@@ -684,10 +751,8 @@ def get_mikrotik_users():
             })
         
         return users
-        
     except Exception as e:
         logging.error(f"Error al conectar con MikroTik: {e}")
-        # Devuelve una lista vacía en caso de error para evitar fallos
         return []
     finally:
         if api and api_pool:
@@ -737,8 +802,16 @@ def importar_clientes():
                     return redirect(request.url)
 
                 for row in reader:
+                    dni_value = row[dni_idx] if row[dni_idx] else None
+                    
+                    if dni_value:
+                        cursor.execute("SELECT dni FROM clientes WHERE dni = %s", (dni_value,))
+                        if cursor.fetchone():
+                            logging.warning(f"DNI duplicado detectado y omitido: {dni_value}")
+                            continue
+
                     sql = "INSERT INTO clientes (nombre, dni, direccion, telefono, plan) VALUES (%s, %s, %s, %s, %s)"
-                    valores = (row[cliente_idx], row[dni_idx], row[direccion_idx], row[telefono_idx], row[plan_idx])
+                    valores = (row[cliente_idx], dni_value, row[direccion_idx], row[telefono_idx], row[plan_idx])
                     cursor.execute(sql, valores)
                 
                 conexion.commit()
@@ -757,58 +830,67 @@ def importar_clientes():
     return render_template('importar_clientes.html')
 
 
+@app.route('/api/clientes', methods=['GET'])
+def api_clientes_search():
+    query = request.args.get('q', '').lower()
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    
+    sql = "SELECT nombre, plan as service, telefono as phone, dni FROM clientes WHERE lower(nombre) LIKE %s OR lower(telefono) LIKE %s OR lower(dni) LIKE %s ORDER BY nombre"
+    search_term = f"%{query}%"
+    cursor.execute(sql, (search_term, search_term, search_term))
+    clientes = cursor.fetchall()
+    
+    cursor.close()
+    conexion.close()
+    return jsonify(clientes)
+
 @app.route('/reparacion_migracion', methods=['GET', 'POST'])
 @admin_required
 def reparacion_migracion():
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
     
-    try:
-        if request.method == 'POST':
-            nombre_cliente = request.form.get('nombre_cliente')
-            tipo_servicio = request.form.get('tipo_servicio')
-            telefono_cliente = request.form.get('telefono_cliente')
-            tipo_tarea = request.form.get('tipo_tarea')
-            id_usuario_asignado = request.form.get('id_usuario_asignado')
-            descripcion = request.form.get('descripcion')
+    if request.method == 'POST':
+        nombre_cliente = request.form.get('nombre_cliente')
+        tipo_servicio = request.form.get('tipo_servicio')
+        telefono_cliente = request.form.get('telefono_cliente')
+        tipo_tarea = request.form.get('tipo_tarea')
+        id_usuario_asignado = request.form.get('id_usuario_asignado')
+        descripcion = request.form.get('descripcion')
+        
+        try:
+            sql_insert_instalacion = """
+                INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
+            cursor.execute(sql_insert_instalacion, valores_instalacion)
+            id_instalacion_creada = cursor.lastrowid
             
-            try:
-                sql_insert_instalacion = """
-                    INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """
-                valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
-                cursor.execute(sql_insert_instalacion, valores_instalacion)
-                id_instalacion_creada = cursor.lastrowid
-                
-                sql_insert_tarea = """
-                    INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
-                cursor.execute(sql_insert_tarea, valores_tarea)
-                
-                conexion.commit()
-                flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
-                return redirect(url_for('admin'))
-            except mysql.connector.Error as err:
-                flash(f"Error al asignar la tarea: {err}", "error")
+            sql_insert_tarea = """
+                INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
+            cursor.execute(sql_insert_tarea, valores_tarea)
+            
+            conexion.commit()
+            flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
+            return redirect(url_for('admin'))
+        except mysql.connector.Error as err:
+            flash(f"Error al asignar la tarea: {err}", "error")
+        finally:
+            if 'conexion' in locals() and conexion.is_connected():
+                cursor.close()
+                conexion.close()
 
-        cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
-        usuarios_no_admin = cursor.fetchall()
-        
-        # OBTENEMOS LOS CLIENTES DE LA NUEVA TABLA
-        cursor.execute("SELECT nombre, plan as service, telefono as phone FROM clientes ORDER BY nombre")
-        clientes_importados = cursor.fetchall()
-        
-        return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin, imported_users=clientes_importados)
+    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
+    usuarios_no_admin = cursor.fetchall()
 
-    finally:
-        if 'conexion' in locals() and conexion.is_connected():
-            cursor.close()
-            conexion.close()
+    return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin)
 
-# --- Rutas para detalles y reservas ---
+
 @app.route('/instalacion/<int:id>')
 @login_required
 def detalle_instalacion(id):
@@ -920,9 +1002,6 @@ def mis_reservas():
     conexion.close()
     return render_template('mis_reservas.html', reservas=reservas_usuario)
 
-# --- NUEVA FUNCIÓN: Asignar Técnico en Línea ---
-# ... (código anterior) ...
-
 @app.route('/asignar_tecnico_en_linea', methods=['POST'])
 @admin_required
 def asignar_tecnico_en_linea():
@@ -937,18 +1016,15 @@ def asignar_tecnico_en_linea():
             flash("Faltan datos para asignar el técnico.", "error")
             return redirect(url_for('admin'))
 
-        # Obtener el nombre del técnico
         cursor.execute("SELECT nombre, telefono FROM usuarios WHERE id_usuario = %s", (id_usuario_asignado,))
         tecnico_info = cursor.fetchone()
         nombre_tecnico = tecnico_info['nombre']
         telefono_tecnico = tecnico_info['telefono']
 
-        # Actualizar la instalación
         sql_update_instalacion = "UPDATE instalaciones SET tecnico_asignado = %s, estado = 'Asignado', id_instalador = %s WHERE id_instalacion = %s"
         valores_update = (nombre_tecnico, id_usuario_asignado, id_instalacion)
         cursor.execute(sql_update_instalacion, valores_update)
 
-        # Crear la tarea en la tabla 'tareas'
         cursor.execute("SELECT nombre, descripcion FROM instalaciones WHERE id_instalacion = %s", (id_instalacion,))
         instalacion = cursor.fetchone()
         
@@ -962,7 +1038,6 @@ def asignar_tecnico_en_linea():
         conexion.commit()
         flash("Técnico asignado con éxito y tarea creada.", "success")
         
-        # Enviar notificación al técnico asignado
         if telefono_tecnico:
             mensaje = f"¡Hola! Se te ha asignado una nueva tarea: {tipo_tarea}. Revisa la app para más detalles."
             success_notif, msg_notif = send_whatsapp_notification(telefono_tecnico, mensaje)
@@ -1006,14 +1081,12 @@ def ver_tarea_completada(tarea_id):
     return render_template('ver_tarea_completada.html', tarea=tarea)
 
 
-# --- NUEVA FUNCIÓN: Exportar a Excel ---
 @app.route('/exportar_tareas_excel')
 @admin_required
 def exportar_tareas_excel():
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
     
-    # Unir las tablas para obtener todos los detalles de las tareas completadas
     cursor.execute("""
         SELECT 
             t.id_tarea,
@@ -1042,17 +1115,13 @@ def exportar_tareas_excel():
         flash("No hay tareas completadas para exportar.", "error")
         return redirect(url_for('admin'))
 
-    # Crear un DataFrame de pandas
     df = pd.DataFrame(tareas)
-
-    # Crear un archivo Excel en memoria
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
     df.to_excel(writer, index=False, sheet_name='Tareas Completadas')
     writer.close()
     output.seek(0)
 
-    # Enviar el archivo al navegador
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -1060,7 +1129,6 @@ def exportar_tareas_excel():
         as_attachment=True
     )
 
-# --- NUEVA FUNCIÓN: Gestión de Tareas ---
 @app.route('/gestion_tareas')
 @admin_required
 def gestion_tareas():
@@ -1094,6 +1162,7 @@ def api_mis_tareas_completadas():
         FROM instalaciones i
         JOIN tareas t ON i.id_instalacion = t.id_instalacion
         WHERE t.id_usuario_asignado = %s AND t.estado = 'Completada'
+        ORDER BY t.fecha_asignacion DESC
     """, (id_usuario,))
     tareas = cursor.fetchall()
     cursor.close()
@@ -1137,7 +1206,6 @@ def api_admin_tareas_asignadas():
 
     events = []
     for tarea in tareas:
-        # Puedes personalizar el título del evento
         title = f"{tarea['tipo_tarea']} ({tarea['tecnico_asignado']})"
         if tarea['estado'] == 'Completada':
             title = f"COMPLETADA: {title}"
@@ -1156,6 +1224,7 @@ def api_admin_tareas_asignadas():
 def admin_ver_tarea(id_tarea):
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
+
     cursor.execute("""
         SELECT t.*, c.nombre as nombre_cliente, c.codigo_cliente, c.telefono as telefono_cliente,
                i.descripcion_final, i.ubicacion_gps_final, i.foto_adjunta,
@@ -1205,27 +1274,28 @@ def api_reniec_search():
         logging.error(f"Error al conectar con la API de RENIEC: {e}")
         return jsonify({'success': False, 'message': 'Error al conectar con la API de RENIEC'}), 500
 
-@app.route('/solicitar_traspaso_tarea/<int:id_tarea>', methods=['POST'])
+@app.route('/solicitar_traspaso', methods=['POST'])
 @login_required
 @instalador_required
-def solicitar_traspaso_tarea(id_tarea):
-    id_usuario_destino = request.form.get('id_usuario_destino')
-    id_usuario_origen = session.get('id_usuario')
+def solicitar_traspaso():
+    id_tarea = request.form.get('id_tarea')
+    id_receptor = request.form.get('id_receptor')
+    id_solicitante = session.get('id_usuario')
     conexion = get_db_connection()
     cursor = conexion.cursor()
     
     try:
         # Verificar que la tarea le pertenece al usuario actual y que está en estado Pendiente
-        cursor.execute("SELECT * FROM tareas WHERE id_tarea = %s AND id_usuario_asignado = %s AND estado = 'Pendiente'", (id_tarea, id_usuario_origen))
+        cursor.execute("SELECT * FROM tareas WHERE id_tarea = %s AND id_usuario_asignado = %s AND estado = 'Pendiente'", (id_tarea, id_solicitante))
         tarea_existente = cursor.fetchone()
         
         if not tarea_existente:
             flash("La tarea no existe, no te ha sido asignada o ya ha sido transferida.", "error")
-            return redirect(url_for('index'))
+            return redirect(url_for('mis_tareas'))
             
         # Insertar la solicitud de traspaso
         sql = "INSERT INTO solicitudes_traspaso (id_tarea, id_solicitante, id_receptor) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (id_tarea, id_usuario_origen, id_usuario_destino))
+        cursor.execute(sql, (id_tarea, id_solicitante, id_receptor))
         
         # Opcional: Cambiar el estado de la tarea a "En Traspaso" para evitar conflictos
         cursor.execute("UPDATE tareas SET estado = 'En Traspaso' WHERE id_tarea = %s", (id_tarea,))
@@ -1239,77 +1309,56 @@ def solicitar_traspaso_tarea(id_tarea):
         cursor.close()
         conexion.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('mis_tareas'))
 
-@app.route('/aceptar_traspaso/<int:id_solicitud>', methods=['POST'])
+@app.route('/gestionar_traspaso', methods=['POST'])
 @login_required
 @instalador_required
-def aceptar_traspaso(id_solicitud):
+def gestionar_traspaso():
+    id_solicitud = request.form.get('id_solicitud')
+    accion = request.form.get('accion')
     id_usuario_actual = session.get('id_usuario')
     conexion = get_db_connection()
     cursor = conexion.cursor()
     
     try:
         # Verificar que la solicitud existe y está pendiente para el usuario actual
-        cursor.execute("SELECT * FROM solicitudes_traspaso WHERE id = %s AND id_receptor = %s AND estado = 'Pendiente'", (id_solicitud, id_usuario_actual))
+        cursor.execute("SELECT * FROM solicitudes_traspaso WHERE id_solicitud = %s AND id_receptor = %s AND estado = 'Pendiente'", (id_solicitud, id_usuario_actual))
         solicitud = cursor.fetchone()
         
         if not solicitud:
             flash("La solicitud no existe o no te corresponde.", "error")
-            return redirect(url_for('index'))
-            
-        # Actualizar la tarea con el nuevo instalador y el estado a 'Pendiente'
-        cursor.execute("UPDATE tareas SET id_usuario_asignado = %s, estado = 'Pendiente' WHERE id_tarea = %s", (solicitud[1], id_usuario_actual))
+            return redirect(url_for('mis_tareas'))
         
-        # Actualizar la solicitud de traspaso a 'Aceptada'
-        cursor.execute("UPDATE solicitudes_traspaso SET estado = 'Aceptada' WHERE id = %s", (id_solicitud,))
+        id_tarea = solicitud[1]
+        
+        if accion == 'aceptar':
+            # Actualizar la tarea con el nuevo instalador y el estado a 'Pendiente'
+            cursor.execute("UPDATE tareas SET id_usuario_asignado = %s, estado = 'Pendiente' WHERE id_tarea = %s", (id_usuario_actual, id_tarea))
+            # Actualizar la solicitud de traspaso a 'Aceptada'
+            cursor.execute("UPDATE solicitudes_traspaso SET estado = 'Aceptada' WHERE id_solicitud = %s", (id_solicitud,))
+            flash("Traspaso aceptado con éxito. La tarea ha sido asignada a tu cuenta.", "success")
+        elif accion == 'rechazar':
+            # Devolver el estado de la tarea a "Pendiente" para que pueda ser reasignada
+            cursor.execute("UPDATE tareas SET estado = 'Pendiente' WHERE id_tarea = %s", (id_tarea,))
+            # Actualizar la solicitud de traspaso a 'Rechazada'
+            cursor.execute("UPDATE solicitudes_traspaso SET estado = 'Rechazada' WHERE id_solicitud = %s", (id_solicitud,))
+            flash("Has rechazado el traspaso de la tarea.", "info")
+        else:
+            flash("Acción no válida.", "error")
+            return redirect(url_for('mis_tareas'))
 
         conexion.commit()
-        flash("Traspaso aceptado con éxito. La tarea ha sido asignada a tu cuenta.", "success")
+
     except Exception as e:
         conexion.rollback()
-        flash(f"Error al aceptar el traspaso: {e}", "error")
+        flash(f"Error al gestionar el traspaso: {e}", "error")
     finally:
         cursor.close()
         conexion.close()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('mis_tareas'))
 
-@app.route('/rechazar_traspaso/<int:id_solicitud>', methods=['POST'])
-@login_required
-@instalador_required
-def rechazar_traspaso(id_solicitud):
-    id_usuario_actual = session.get('id_usuario')
-    conexion = get_db_connection()
-    cursor = conexion.cursor()
-    
-    try:
-        # Verificar que la solicitud existe y está pendiente para el usuario actual
-        cursor.execute("SELECT * FROM solicitudes_traspaso WHERE id = %s AND id_receptor = %s AND estado = 'Pendiente'", (id_solicitud, id_usuario_actual))
-        solicitud = cursor.fetchone()
-        
-        if not solicitud:
-            flash("La solicitud no existe o no te corresponde.", "error")
-            return redirect(url_for('index'))
-        
-        # Devolver el estado de la tarea a "Pendiente" para que pueda ser reasignada
-        cursor.execute("UPDATE tareas SET estado = 'Pendiente' WHERE id_tarea = %s", (solicitud[1],))
-        
-        # Actualizar la solicitud de traspaso a 'Rechazada'
-        cursor.execute("UPDATE solicitudes_traspaso SET estado = 'Rechazada' WHERE id = %s", (id_solicitud,))
-        
-        conexion.commit()
-        flash("Has rechazado el traspaso de la tarea.", "info")
-    except Exception as e:
-        conexion.rollback()
-        flash(f"Error al rechazar el traspaso: {e}", "error")
-    finally:
-        cursor.close()
-        conexion.close()
-    
-    return redirect(url_for('index'))
-
-# --- Rutas API para el Dashboard de Administrador ---
 @app.route('/api/admin_stats')
 @admin_required
 def api_admin_stats():
@@ -1351,25 +1400,22 @@ def api_admin_stats():
         'tareas_por_tipo': tareas_por_tipo
     })
 
-# --- Rutas API para el Dashboard de Técnico ---
 @app.route('/api/tecnico_stats/<int:id_tecnico>')
 @login_required
 @instalador_required
 def api_tecnico_stats(id_tecnico):
     if session.get('id_usuario') != id_tecnico:
-        abort(403) # Prohibir acceso si no es el técnico correcto
+        abort(403)
         
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
     
-    # Tareas completadas por el técnico
     cursor.execute("""
         SELECT COUNT(*) as count FROM tareas
         WHERE id_usuario_asignado = %s AND estado = 'Completada'
     """, (id_tecnico,))
     completadas = cursor.fetchone()['count']
     
-    # Tareas pendientes del técnico
     cursor.execute("""
         SELECT COUNT(*) as count FROM tareas
         WHERE id_usuario_asignado = %s AND estado = 'Pendiente'
@@ -1383,7 +1429,6 @@ def api_tecnico_stats(id_tecnico):
         'total_completadas': completadas,
         'total_pendientes': pendientes
     })
-# ... (código anterior) ...
 
 @app.route('/tecnico/dashboard')
 @login_required
@@ -1391,183 +1436,6 @@ def api_tecnico_stats(id_tecnico):
 def tecnico_dashboard():
     return render_template('tecnico_dashboard.html')
 
-# ... (código anterior) ...
-
-# --- Rutas de Autenticación de Clientes ---
-@app.route('/cliente/registro', methods=['GET', 'POST'])
-def cliente_registro():
-    if request.method == 'POST':
-        dni = request.form['dni']
-        email = request.form['email']
-        password = request.form['password']
-        hashed_password = generate_password_hash(password)
-
-        conexion = get_db_connection()
-        cursor = conexion.cursor(dictionary=True)
-        
-        try:
-            # 1. Verificar si el DNI existe en la tabla de clientes
-            cursor.execute("SELECT id_cliente FROM clientes WHERE dni = %s", (dni,))
-            cliente = cursor.fetchone()
-            if not cliente:
-                flash("El DNI no está registrado en nuestra base de datos. Por favor, contacte a soporte.", "error")
-                return redirect(url_for('cliente_registro'))
-
-            id_cliente = cliente['id_cliente']
-
-            # 2. Verificar si ya existe una cuenta de usuario con ese email
-            cursor.execute("SELECT id_cliente_usuario FROM clientes_usuarios WHERE email = %s", (email,))
-            if cursor.fetchone():
-                flash("Ya existe una cuenta con este correo electrónico. Por favor, inicie sesión.", "error")
-                return redirect(url_for('cliente_registro'))
-
-            # 3. Crear el nuevo usuario
-            sql = "INSERT INTO clientes_usuarios (id_cliente, email, password) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (id_cliente, email, hashed_password))
-            conexion.commit()
-            
-            flash("Registro exitoso. ¡Inicie sesión ahora!", "success")
-            return redirect(url_for('cliente_login'))
-        
-        except Exception as e:
-            conexion.rollback()
-            logging.error(f"Error en el registro de cliente: {e}")
-            flash("Ocurrió un error al registrarse. Por favor, inténtelo de nuevo.", "error")
-            return redirect(url_for('cliente_registro'))
-        finally:
-            cursor.close()
-            conexion.close()
-            
-    return render_template('cliente_registro.html')
-
-@app.route('/cliente/login', methods=['GET', 'POST'])
-def cliente_login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        
-        conexion = get_db_connection()
-        cursor = conexion.cursor(dictionary=True)
-        
-        try:
-            sql = "SELECT cu.id_cliente_usuario, cu.password, c.nombre FROM clientes_usuarios cu JOIN clientes c ON cu.id_cliente = c.id_cliente WHERE cu.email = %s"
-            cursor.execute(sql, (email,))
-            usuario_cliente = cursor.fetchone()
-            
-            if usuario_cliente and check_password_hash(usuario_cliente['password'], password):
-                session['id_cliente_usuario'] = usuario_cliente['id_cliente_usuario']
-                session['nombre_cliente'] = usuario_cliente['nombre']
-                flash(f"¡Bienvenido, {usuario_cliente['nombre']}!", "success")
-                return redirect(url_for('cliente_dashboard'))
-            else:
-                flash('Credenciales incorrectas.', "error")
-                return render_template('cliente_login.html')
-        except Exception as e:
-            logging.error(f"Error en el login de cliente: {e}")
-            flash("Ocurrió un error. Por favor, inténtelo de nuevo.", "error")
-            return redirect(url_for('cliente_login'))
-        finally:
-            cursor.close()
-            conexion.close()
-            
-    return render_template('cliente_login.html')
-
-@app.route('/cliente/logout')
-def cliente_logout():
-    session.pop('id_cliente_usuario', None)
-    session.pop('nombre_cliente', None)
-    flash("Has cerrado sesión correctamente.", "success")
-    return redirect(url_for('cliente_login'))
-
-# Decorador para restringir el acceso solo a clientes logueados
-# --- Rutas de Autenticación de Clientes ---
-# Decorador para restringir el acceso solo a clientes logueados
-def cliente_login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'id_cliente_usuario' not in session:
-            flash("Por favor, inicia sesión para acceder a esta página.", "error")
-            return redirect(url_for('cliente_login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-@app.route('/cliente/registro', methods=['GET', 'POST'])
-def cliente_registro():
-    if request.method == 'POST':
-        dni = request.form['dni']
-        email = request.form['email']
-        password = request.form['password']
-        hashed_password = generate_password_hash(password)
-
-        conexion = get_db_connection()
-        cursor = conexion.cursor(dictionary=True)
-        
-        try:
-            # 1. Verificar si el DNI existe en la tabla de clientes
-            cursor.execute("SELECT id_cliente FROM clientes WHERE dni = %s", (dni,))
-            cliente = cursor.fetchone()
-            if not cliente:
-                flash("El DNI no está registrado en nuestra base de datos. Por favor, contacte a soporte.", "error")
-                return redirect(url_for('cliente_registro'))
-
-            id_cliente = cliente['id_cliente']
-
-            # 2. Verificar si ya existe una cuenta de usuario con ese email
-            cursor.execute("SELECT id_cliente_usuario FROM clientes_usuarios WHERE email = %s", (email,))
-            if cursor.fetchone():
-                flash("Ya existe una cuenta con este correo electrónico. Por favor, inicie sesión.", "error")
-                return redirect(url_for('cliente_registro'))
-
-            # 3. Crear el nuevo usuario
-            sql = "INSERT INTO clientes_usuarios (id_cliente, email, password) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (id_cliente, email, hashed_password))
-            conexion.commit()
-            
-            flash("Registro exitoso. ¡Inicie sesión ahora!", "success")
-            return redirect(url_for('cliente_login'))
-        
-        except Exception as e:
-            conexion.rollback()
-            logging.error(f"Error en el registro de cliente: {e}")
-            flash("Ocurrió un error al registrarse. Por favor, inténtelo de nuevo.", "error")
-            return redirect(url_for('cliente_registro'))
-        finally:
-            cursor.close()
-            conexion.close()
-            
-    return render_template('cliente_registro.html')
-
-@app.route('/cliente/login', methods=['GET', 'POST'])
-def cliente_login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        
-        conexion = get_db_connection()
-        cursor = conexion.cursor(dictionary=True)
-        
-        try:
-            sql = "SELECT cu.id_cliente_usuario, cu.password, c.nombre FROM clientes_usuarios cu JOIN clientes c ON cu.id_cliente = c.id_cliente WHERE cu.email = %s"
-            cursor.execute(sql, (email,))
-            usuario_cliente = cursor.fetchone()
-            
-            if usuario_cliente and check_password_hash(usuario_cliente['password'], password):
-                session['id_cliente_usuario'] = usuario_cliente['id_cliente_usuario']
-                session['nombre_cliente'] = usuario_cliente['nombre']
-                flash(f"¡Bienvenido, {usuario_cliente['nombre']}!", "success")
-                return redirect(url_for('cliente_dashboard'))
-            else:
-                flash('Credenciales incorrectas.', "error")
-                return render_template('cliente_login.html')
-        except Exception as e:
-            logging.error(f"Error en el login de cliente: {e}")
-            flash("Ocurrió un error. Por favor, inténtelo de nuevo.", "error")
-            return redirect(url_for('cliente_login'))
-        finally:
-            cursor.close()
-            conexion.close()
-            
-    return render_template('cliente_login.html')
 
 @app.route('/cliente/dashboard', methods=['GET', 'POST'])
 @cliente_login_required
@@ -1576,7 +1444,6 @@ def cliente_dashboard():
     cursor = conexion.cursor(dictionary=True)
     id_cliente_usuario = session.get('id_cliente_usuario')
     
-    # 1. Obtener los datos del cliente y sus instalaciones
     sql = """
         SELECT c.*, cu.id_cliente_usuario
         FROM clientes c
@@ -1586,19 +1453,17 @@ def cliente_dashboard():
     cursor.execute(sql, (id_cliente_usuario,))
     cliente_data = cursor.fetchone()
 
-    # 2. Obtener las instalaciones asociadas a este cliente
     sql_instalaciones = """
-        SELECT i.*, inv.numero_serie, t.estado AS estado_tarea
-        FROM instalaciones i
-        LEFT JOIN inventario inv ON i.id_equipo_instalado = inv.id_equipo
-        LEFT JOIN tareas t ON i.id_instalacion = t.id_instalacion
-        WHERE i.id_cliente = %s
-        ORDER BY i.fecha_creacion DESC
-    """
+    SELECT i.*, inv.numero_serie, t.estado AS estado_tarea
+    FROM instalaciones i
+    LEFT JOIN inventario inv ON i.id_equipo_instalado = inv.id_equipo
+    LEFT JOIN tareas t ON i.id_instalacion = t.id_instalacion
+    WHERE i.id_cliente = %s
+    ORDER BY i.id_instalacion DESC
+"""
     cursor.execute(sql_instalaciones, (cliente_data['id_cliente'],))
     instalaciones = cursor.fetchall()
     
-    # Lógica para reportar un nuevo problema (ruta POST)
     if request.method == 'POST':
         id_instalacion = request.form.get('id_instalacion')
         descripcion_problema = request.form.get('descripcion_problema')
@@ -1608,7 +1473,6 @@ def cliente_dashboard():
             return redirect(url_for('cliente_dashboard'))
 
         try:
-            # Insertar la nueva tarea de reparación
             sql_insert_tarea = """
                 INSERT INTO tareas (id_instalacion, tipo_tarea, descripcion, fecha_creacion, estado)
                 VALUES (%s, 'Reparacion', %s, NOW(), 'Pendiente')
@@ -1630,16 +1494,7 @@ def cliente_dashboard():
     conexion.close()
     return render_template('cliente_dashboard.html', cliente=cliente_data, instalaciones=instalaciones)
 
-@app.route('/cliente/logout')
-def cliente_logout():
-    session.pop('id_cliente_usuario', None)
-    session.pop('nombre_cliente', None)
-    flash("Has cerrado sesión correctamente.", "success")
-    return redirect(url_for('cliente_login'))
 
-# --- Inicio de la aplicación ---
-
-# --- Rutas de Gestión de Inventario (Admin) ---
 @app.route('/admin/inventario')
 @admin_required
 def inventario_admin():
@@ -1731,7 +1586,66 @@ def inventario_eliminar(id):
     
     return redirect(url_for('inventario_admin'))
 
+@app.route('/api/clientes', methods=['GET'])
+def api_clientes():
+    query = request.args.get('q', '').lower()
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    
+    sql = "SELECT nombre, plan as service, telefono as phone, dni FROM clientes WHERE lower(nombre) LIKE %s OR lower(telefono) LIKE %s OR lower(dni) LIKE %s ORDER BY nombre"
+    search_term = f"%{query}%"
+    cursor.execute(sql, (search_term, search_term, search_term))
+    clientes = cursor.fetchall()
+    
+    cursor.close()
+    conexion.close()
+    return jsonify(clientes)
+
+@app.route('/reparacion_migracion', methods=['GET', 'POST'])
+@admin_required
+def reparacion_migracion():
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        nombre_cliente = request.form.get('nombre_cliente')
+        tipo_servicio = request.form.get('tipo_servicio')
+        telefono_cliente = request.form.get('telefono_cliente')
+        tipo_tarea = request.form.get('tipo_tarea')
+        id_usuario_asignado = request.form.get('id_usuario_asignado')
+        descripcion = request.form.get('descripcion')
+        
+        try:
+            sql_insert_instalacion = """
+                INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
+            cursor.execute(sql_insert_instalacion, valores_instalacion)
+            id_instalacion_creada = cursor.lastrowid
+            
+            sql_insert_tarea = """
+                INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
+            cursor.execute(sql_insert_tarea, valores_tarea)
+            
+            conexion.commit()
+            flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
+            return redirect(url_for('admin'))
+        except mysql.connector.Error as err:
+            flash(f"Error al asignar la tarea: {err}", "error")
+        finally:
+            if 'conexion' in locals() and conexion.is_connected():
+                cursor.close()
+                conexion.close()
+
+    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
+    usuarios_no_admin = cursor.fetchall()
+
+    return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin)
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-
-    
