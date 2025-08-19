@@ -291,11 +291,19 @@ def admin():
 def nueva_instalacion():
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
+
     cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
     tecnicos = cursor.fetchall()
 
+# Consulta para obtener los tipos de instalación desde la tabla `tipos_instalacion`
     cursor.execute("SELECT nombre FROM tipos_instalacion ORDER BY nombre")
     tipos_instalacion = [row['nombre'] for row in cursor.fetchall()]
+        # Consulta para obtener los planes de la tabla `clientes`
+    cursor.execute("SELECT DISTINCT plan FROM clientes WHERE plan IS NOT NULL ORDER BY plan")
+    planes_clientes = [row['plan'] for row in cursor.fetchall()]
+        # Combina ambas listas para ofrecer una selección completa
+    todos_los_planes = sorted(list(set(tipos_instalacion + planes_clientes)))
+
 
     if request.method == 'POST':
         nombre_instalacion = request.form.get('nombre')
@@ -333,8 +341,8 @@ def nueva_instalacion():
             logging.error(message)
             return redirect(url_for('nueva_instalacion'))
 
-    return render_template('nueva_instalacion.html', tecnicos=tecnicos, tipos_instalacion=tipos_instalacion, maps_api_key=maps_api_key) 
-    
+    return render_template('nueva_instalacion.html', tecnicos=tecnicos, tipos_instalacion=todos_los_planes, maps_api_key=maps_api_key)
+
 @app.route('/editar_instalacion/<int:id>', methods=['GET', 'POST'])
 @admin_required
 def editar_instalacion(id):
@@ -551,6 +559,8 @@ def index():
     
     return render_template('tareas_asignadas.html', tareas=tareas_asignadas)
 
+# app.py
+
 @app.route('/mis_tareas')
 @login_required
 @instalador_required
@@ -558,18 +568,40 @@ def mis_tareas():
     id_usuario = session['id_usuario']
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
+
+    # Consulta para obtener solo las tareas pendientes
     cursor.execute("""
         SELECT t.*, i.nombre AS nombre_instalacion, c.nombre as nombre_cliente, c.telefono as telefono_cliente
         FROM tareas t
         JOIN instalaciones i ON t.id_instalacion = i.id_instalacion
         JOIN clientes c ON i.id_cliente = c.id_cliente
-        WHERE t.id_usuario_asignado = %s
+        WHERE t.id_usuario_asignado = %s AND t.estado = 'Pendiente'
         ORDER BY t.fecha_asignacion DESC
     """, (id_usuario,))
-    mis_tareas = cursor.fetchall()
+    tareas_pendientes = cursor.fetchall()
+    
+    # Lógica para obtener otros instaladores y solicitudes de traspaso (código existente)
+    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE id_usuario != %s AND es_admin = 0", (id_usuario,))
+    otros_instaladores = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT st.id_solicitud, t.id_tarea, t.tipo_tarea, t.descripcion, u.nombre as solicitante
+        FROM solicitudes_traspaso st
+        JOIN tareas t ON st.id_tarea = t.id_tarea
+        JOIN usuarios u ON st.id_solicitante = u.id_usuario
+        WHERE st.id_receptor = %s AND st.estado = 'Pendiente'
+    """, (id_usuario,))
+    solicitudes_recibidas = cursor.fetchall()
+    
     cursor.close()
     conexion.close()
-    return render_template('mis_tareas.html', mis_tareas=mis_tareas)
+
+    # Se pasan las variables correctas a la plantilla
+    return render_template('mis_tareas.html', 
+        tareas_pendientes=tareas_pendientes,
+        solicitudes_recibidas=solicitudes_recibidas,
+        otros_instaladores=otros_instaladores
+    )
 
 
 @app.route('/completar_instalacion/<int:instalacion_id>', methods=['GET', 'POST'])
