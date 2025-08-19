@@ -1187,7 +1187,56 @@ def mis_tareas_completadas_calendario():
 @app.route('/admin/tareas_calendario')
 @admin_required
 def admin_tareas_calendario():
-    return render_template('admin_tareas_calendario.html')
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+    # Obtener la lista de técnicos para el formulario del calendario
+    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
+    tecnicos = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+    return render_template('admin_tareas_calendario.html', tecnicos=tecnicos)
+
+# En app.py, agrega esta nueva función
+@app.route('/asignar_tarea_calendario', methods=['POST'])
+@admin_required
+def asignar_tarea_calendario():
+    fecha = request.form.get('fecha_asignacion')
+    tecnico_asignado_id = request.form.get('id_usuario_asignado')
+    tipo_tarea = request.form.get('tipo_tarea')
+    descripcion = request.form.get('descripcion')
+    
+    conexion = get_db_connection()
+    cursor = conexion.cursor()
+    
+    try:
+        # Aquí la lógica es similar a `nueva_instalacion`, pero sin todos los campos.
+        # Necesitas un id_instalacion. Como no lo tienes, puedes crear uno con datos básicos.
+        sql_insert_instalacion = """
+            INSERT INTO instalaciones (nombre, descripcion, estado, id_instalador)
+            VALUES (%s, %s, %s, %s)
+        """
+        nombre_instalacion = f"{tipo_tarea} - {fecha}"
+        valores_instalacion = (nombre_instalacion, descripcion, 'Pendiente', tecnico_asignado_id)
+        cursor.execute(sql_insert_instalacion, valores_instalacion)
+        id_instalacion_creada = cursor.lastrowid
+
+        sql_insert_tarea = """
+            INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        valores_tarea = (id_instalacion_creada, session.get('id_usuario'), tecnico_asignado_id, tipo_tarea, descripcion, fecha, 'Pendiente')
+        cursor.execute(sql_insert_tarea, valores_tarea)
+        
+        conexion.commit()
+        flash("Tarea asignada con éxito desde el calendario.", "success")
+    except Exception as e:
+        conexion.rollback()
+        flash(f"Error al asignar la tarea: {e}", "error")
+    finally:
+        cursor.close()
+        conexion.close()
+    
+    return redirect(url_for('admin_tareas_calendario'))
 
 @app.route('/api/admin_tareas_asignadas')
 @admin_required
@@ -1601,51 +1650,33 @@ def api_clientes():
     conexion.close()
     return jsonify(clientes)
 
-@app.route('/reparacion_migracion', methods=['GET', 'POST'])
+# En app.py, añade esta nueva ruta
+@app.route('/api/inventario/buscar_por_serie', methods=['GET'])
 @admin_required
-def reparacion_migracion():
+def api_buscar_equipo_por_serie():
+    numero_serie = request.args.get('numero_serie')
+    if not numero_serie:
+        return jsonify({'success': False, 'message': 'Número de serie no proporcionado.'}), 400
+
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
     
-    if request.method == 'POST':
-        nombre_cliente = request.form.get('nombre_cliente')
-        tipo_servicio = request.form.get('tipo_servicio')
-        telefono_cliente = request.form.get('telefono_cliente')
-        tipo_tarea = request.form.get('tipo_tarea')
-        id_usuario_asignado = request.form.get('id_usuario_asignado')
-        descripcion = request.form.get('descripcion')
+    try:
+        sql = "SELECT numero_serie, modelo FROM inventario WHERE numero_serie = %s"
+        cursor.execute(sql, (numero_serie,))
+        equipo = cursor.fetchone()
         
-        try:
-            sql_insert_instalacion = """
-                INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
-            cursor.execute(sql_insert_instalacion, valores_instalacion)
-            id_instalacion_creada = cursor.lastrowid
+        if equipo:
+            return jsonify({'success': True, 'numero_serie': equipo['numero_serie'], 'modelo': equipo['modelo']})
+        else:
+            return jsonify({'success': False, 'message': 'Equipo no encontrado en el inventario.'}), 404
             
-            sql_insert_tarea = """
-                INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
-            cursor.execute(sql_insert_tarea, valores_tarea)
-            
-            conexion.commit()
-            flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
-            return redirect(url_for('admin'))
-        except mysql.connector.Error as err:
-            flash(f"Error al asignar la tarea: {err}", "error")
-        finally:
-            if 'conexion' in locals() and conexion.is_connected():
-                cursor.close()
-                conexion.close()
-
-    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
-    usuarios_no_admin = cursor.fetchall()
-
-    return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin)
-
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'message': f'Error en la base de datos: {err}'}), 500
+    finally:
+        if conexion and conexion.is_connected():
+            cursor.close()
+            conexion.close()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -9,10 +9,62 @@
     <div id="calendar" class="p-4 bg-white rounded-lg shadow-md"></div>
 </div>
 
+<div id="taskModal" class="modal-container hidden">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 class="form-section-title">Asignar Nueva Tarea</h2>
+        <form id="taskForm" action="{{ url_for('asignar_tarea_calendario') }}" method="POST">
+            <div class="form-group">
+                <label for="modal-fecha">Fecha:</label>
+                <input type="text" id="modal-fecha" name="fecha_asignacion" class="form-input" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-tecnico">Asignar a:</label>
+                <select id="modal-tecnico" name="id_usuario_asignado" class="form-select" required>
+                    <option value="">Selecciona un técnico</option>
+                    {% for tecnico in tecnicos %}
+                    <option value="{{ tecnico.id_usuario }}">{{ tecnico.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+<div class="form-group">
+    <label for="modal-tipo-tarea">Tipo de Tarea:</label>
+    <select id="modal-tipo-tarea" name="tipo_tarea" class="form-select" required>
+        <option value="Mantenimiento">Mantenimiento</option>
+        <option value="Reparacion">Reparación</option>
+        <option value="Inspeccion">Inspección</option>
+        <option value="Traslado">Traslado</option>
+        <option value="Migracion">Migración</option>
+        <option value="Nueva Instalación">Nueva Instalación</option>
+    </select>
+</div>
+            <div class="form-group">
+                <label for="modal-descripcion">Descripción:</label>
+                <textarea id="modal-descripcion" name="descripcion" class="form-textarea" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary w-full mt-4">Asignar Tarea</button>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
+        var modal = document.getElementById('taskModal');
+        var closeButton = document.getElementsByClassName('close-button')[0];
+        var dateInput = document.getElementById('modal-fecha');
+
+        closeButton.onclick = function() {
+            modal.classList.add('hidden');
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             locale: 'es',
@@ -22,6 +74,10 @@
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             events: '/api/admin_tareas_asignadas',
+            dateClick: function(info) {
+                dateInput.value = info.dateStr;
+                modal.classList.remove('hidden');
+            },
             eventClick: function(info) {
                 // Redirige a la nueva página de detalles de la tarea del administrador
                 window.location.href = "{{ url_for('admin_ver_tarea', id_tarea=0) }}".replace('0', info.event.id);
@@ -29,5 +85,57 @@
         });
         calendar.render();
     });
+    document.getElementById('taskForm').addEventListener('submit', function(event) {
+    const tipoTarea = document.getElementById('modal-tipo-tarea').value;
+    if (tipoTarea === 'Nueva Instalación') {
+        event.preventDefault(); // Stop the default form submission
+        window.location.href = "{{ url_for('nueva_instalacion') }}";
+    }
+    // If it's not 'Nueva Instalación', the form will submit normally to the backend route
+});
 </script>
+
+<style>
+    .modal-container {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-container.hidden {
+        display: none;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
 {% endblock %}

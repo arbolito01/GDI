@@ -10,16 +10,7 @@
 <div class="container">
     <h1>Asignar Tarea de Reparación/Migración</h1>
     
-    <div class="main-content-card">
-        <h2 class="form-section-title">Importar Clientes</h2>
-        <form action="{{ url_for('importar_clientes') }}" method="post" enctype="multipart/form-data" class="space-y-4">
-            <div class="form-group">
-                <label for="file" class="form-label">Selecciona un archivo CSV (.csv)</label>
-                <input type="file" id="file" name="file" class="form-file" accept=".csv" required>
-            </div>
-            <button type="submit" class="btn-primary w-full">Importar Archivo CSV</button>
-        </form>
-    </div>
+
 
     <form action="{{ url_for('reparacion_migracion') }}" method="POST" class="form-reserva mt-8">
         

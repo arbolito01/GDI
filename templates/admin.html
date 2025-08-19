@@ -16,20 +16,16 @@
         {% endif %}
     {% endwith %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tareas por Estado</h3>
-            <canvas id="tareasPorEstadoChart"></canvas>
-        </div>
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Top Técnicos (Tareas Completadas)</h3>
-            <canvas id="topTecnicosChart"></canvas>
-        </div>
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tareas por Tipo</h3>
-            <canvas id="tareasPorTipoChart"></canvas>
-        </div>
-    </div>
+    <h2 class="form-section-title mt-8 mb-4">Gestión de Solicitudes/Instalaciones</h2>
+    <a href="{{ url_for('nueva_instalacion') }}" class="btn-primary mb-6">
+        Añadir Nueva Instalación
+    </a>
+    <a href="{{ url_for('reparacion_migracion') }}" class="btn-primary mb-6">
+        Reparación/Migración
+    </a>
+    <a href="{{ url_for('importar_clientes') }}" class="btn-primary mb-6">
+        Importar Clientes
+    </a>
     
     <div class="filter-controls mt-6 mb-4">
         <label for="fecha_inicio">Fecha de inicio:</label>
@@ -38,14 +34,6 @@
         <input type="date" id="fecha_fin">
         <button onclick="filtrarPorFecha()">Filtrar</button>
     </div>
-
-    <h2 class="form-section-title mt-8 mb-4">Gestión de Solicitudes/Instalaciones</h2>
-    <a href="{{ url_for('nueva_instalacion') }}" class="btn-primary mb-6">
-        Añadir Nueva Instalación
-    </a>
-    <a href="{{ url_for('reparacion_migracion') }}" class="btn-primary mb-6">
-        Reparación/Migración
-    </a>
 
     <div class="overflow-x-auto mb-10">
         <table id="tabla-instalaciones" class="min-w-full bg-white rounded-lg shadow-md mt-4">
@@ -93,6 +81,20 @@
         </table>
     </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tareas por Estado</h3>
+            <canvas id="tareasPorEstadoChart"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Top Técnicos (Tareas Completadas)</h3>
+            <canvas id="topTecnicosChart"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tareas por Tipo</h3>
+            <canvas id="tareasPorTipoChart"></canvas>
+        </div>
+    </div>
 
     <h2 class="form-section-title mt-8 mb-4">Gestión de Usuarios</h2>
     <div class="overflow-x-auto">
