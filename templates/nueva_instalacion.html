@@ -28,9 +28,14 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="descripcion" class="form-label">Descripción</label>
-            <textarea id="descripcion" name="descripcion" class="form-textarea" required></textarea>
-        </div>
+    <label for="zona">Zona de Instalación</label>
+    <select id="zona" name="zona" required>
+        <option value="">Seleccione una zona</option>
+        {% for zona in zonas %}
+            <option value="{{ zona.id_zona }}">{{ zona.nombre }}</option>
+        {% endfor %}
+    </select>
+</div>
         <div class="form-group">
             <label for="estado" class="form-label">Estado</label>
             <input type="hidden" name="estado" value="Pendiente">
@@ -89,14 +94,16 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="form-group">
-            <label for="fecha_solicitada" class="form-label">Fecha Solicitada</label>
-            <input type="date" id="fecha_solicitada" name="fecha_solicitada" class="form-input" required>
-        </div>
-        <div class="form-group">
-            <label for="hora_solicitada" class="form-label">Hora Solicitada</label>
-            <input type="time" id="hora_solicitada" name="hora_solicitada" class="form-input" required>
-        </div>
+        <div class="form-group grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="form-group">
+        <label for="fecha_solicitada" class="form-label">Fecha Solicitada</label>
+        <input type="date" id="fecha_solicitada" name="fecha_solicitada" class="form-input" required>
+    </div>
+    <div class="form-group">
+        <label for="hora_solicitada" class="form-label">Hora Solicitada</label>
+        <input type="time" id="hora_solicitada" name="hora_solicitada" class="form-input" required>
+    </div>
+</div>
 
         <h2 class="form-section-title mt-6">Ubicación GPS</h2>
         <button type="button" id="get-location-btn" class="btn-secondary w-full mb-4">Usar mi ubicación actual</button>

@@ -96,6 +96,11 @@ def cliente_login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- IMPORTADOR JSON ---
+@app.template_filter('from_json')
+def from_json_filter(value):
+    return json.loads(value)
+
 # --- Rutas de Autenticación ---
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
@@ -304,6 +309,14 @@ def nueva_instalacion():
         # Combina ambas listas para ofrecer una selección completa
     todos_los_planes = sorted(list(set(tipos_instalacion + planes_clientes)))
 
+    # Nueva lógica para obtener las zonas
+    conexion_zonas = get_db_connection()
+    cursor_zonas = conexion_zonas.cursor(dictionary=True)
+    cursor_zonas.execute("SELECT id_zona, nombre FROM zonas ORDER BY nombre")
+    zonas = cursor_zonas.fetchall()
+    cursor_zonas.close()
+    conexion_zonas.close()
+
 
     if request.method == 'POST':
         nombre_instalacion = request.form.get('nombre')
@@ -317,7 +330,8 @@ def nueva_instalacion():
         latitud = request.form.get('latitud', '')
         longitud = request.form.get('longitud', '')
         ubicacion_gps = f"{latitud},{longitud}" if latitud and longitud else ""
-
+        id_zona = request.form.get('id_zona')
+        
         imagen_url = ""
         if 'imagen' in request.files and request.files['imagen'].filename != '':
             file = request.files['imagen']
@@ -328,7 +342,7 @@ def nueva_instalacion():
                 imagen_url = os.path.join('uploads', filename).replace('\\', '/')
 
         success, message = create_new_installation(
-            nombre_instalacion, descripcion, hora_solicitada, tecnico_asignado_id,
+            nombre_instalacion, id_zona, hora_solicitada, tecnico_asignado_id,
             dni_cliente, nombre_cliente, telefono_cliente, referencia,
             session.get('id_usuario'), imagen_url, ubicacion_gps
         )
@@ -341,7 +355,7 @@ def nueva_instalacion():
             logging.error(message)
             return redirect(url_for('nueva_instalacion'))
 
-    return render_template('nueva_instalacion.html', tecnicos=tecnicos, tipos_instalacion=todos_los_planes, maps_api_key=maps_api_key)
+    return render_template('nueva_instalacion.html', tecnicos=tecnicos, tipos_instalacion=todos_los_planes, maps_api_key=maps_api_key, zonas=zonas)
 
 @app.route('/editar_instalacion/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -684,6 +698,7 @@ def completar_instalacion(instalacion_id):
             cursor.execute(sql_update_instalacion, valores_update_instalacion)
 
             cursor.execute("UPDATE inventario SET estado = 'Instalado' WHERE id_equipo = %s", (id_equipo_instalado,))
+            cursor.execute("UPDATE inventario SET estado = 'Instalado', fecha_instalacion = %s WHERE id_equipo = %s", (fecha_completado, id_equipo_instalado))
 
             sql_update_tarea = "UPDATE tareas SET estado = 'Completada' WHERE id_tarea = %s"
             cursor.execute(sql_update_tarea, (tarea['id_tarea'],))
@@ -707,7 +722,7 @@ def completar_instalacion(instalacion_id):
                 }
                 try:
                     response = requests.post(
-                        f"https://graph.facebook.com/v15.0/{phone_number_id}/messages",
+                        f"[https://graph.facebook.com/v15.0/](https://graph.facebook.com/v15.0/){phone_number_id}/messages",
                         json=payload,
                         headers=headers
                     )
@@ -881,45 +896,72 @@ def api_clientes_search():
 @admin_required
 def reparacion_migracion():
     conexion = get_db_connection()
+    if not conexion:
+        flash("Error al conectar con la base de datos.", "error")
+        return render_template('reparacion_migracion.html', usuarios_no_admin=[])
+    
     cursor = conexion.cursor(dictionary=True)
     
+    # Obtener usuarios no administradores para el formulario GET
+    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
+    usuarios_no_admin = cursor.fetchall()
+
     if request.method == 'POST':
         nombre_cliente = request.form.get('nombre_cliente')
         tipo_servicio = request.form.get('tipo_servicio')
         telefono_cliente = request.form.get('telefono_cliente')
         tipo_tarea = request.form.get('tipo_tarea')
         id_usuario_asignado = request.form.get('id_usuario_asignado')
-        descripcion = request.form.get('descripcion')
+        descripcion_tarea = request.form.get('descripcion')
         
         try:
+            # 1. Buscar o crear el cliente
+            cursor.execute("SELECT id_cliente FROM clientes WHERE nombre = %s AND telefono = %s", (nombre_cliente, telefono_cliente))
+            cliente = cursor.fetchone()
+            
+            id_cliente = None
+            if cliente:
+                id_cliente = cliente['id_cliente']
+            else:
+                # Si el cliente no existe, se crea uno nuevo con datos básicos.
+                sql_insert_cliente = """
+                    INSERT INTO clientes (nombre, telefono, plan) 
+                    VALUES (%s, %s, %s)
+                """
+                valores_cliente = (nombre_cliente, telefono_cliente, tipo_servicio)
+                cursor.execute(sql_insert_cliente, valores_cliente)
+                id_cliente = cursor.lastrowid
+            
+            # 2. Insertar la instalación (Ahora solo con los campos que existen en la tabla)
             sql_insert_instalacion = """
-                INSERT INTO instalaciones (nombre, descripcion, estado, tipo_servicio, nombre_cliente, telefono_cliente)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO instalaciones (id_cliente, nombre, estado, id_instalador)
+                VALUES (%s, %s, %s, %s)
             """
-            valores_instalacion = (f"{tipo_tarea} - {nombre_cliente}", descripcion, 'Pendiente', tipo_servicio, nombre_cliente, telefono_cliente)
+            valores_instalacion = (id_cliente, f"{tipo_tarea} - {nombre_cliente}", 'Pendiente', id_usuario_asignado)
             cursor.execute(sql_insert_instalacion, valores_instalacion)
             id_instalacion_creada = cursor.lastrowid
             
+            # 3. Insertar la tarea (se mantiene el campo de descripción)
             sql_insert_tarea = """
                 INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion, date.today(), 'Pendiente')
+            valores_tarea = (id_instalacion_creada, session.get('id_usuario'), id_usuario_asignado, tipo_tarea, descripcion_tarea, date.today(), 'Pendiente')
             cursor.execute(sql_insert_tarea, valores_tarea)
             
             conexion.commit()
             flash(f"Tarea de {tipo_tarea} asignada con éxito a un técnico.", "success")
             return redirect(url_for('admin'))
         except mysql.connector.Error as err:
+            conexion.rollback()
             flash(f"Error al asignar la tarea: {err}", "error")
+            logging.error(f"Error en reparacion_migracion: {err}")
         finally:
-            if 'conexion' in locals() and conexion.is_connected():
+            if conexion and conexion.is_connected():
                 cursor.close()
                 conexion.close()
-
-    cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
-    usuarios_no_admin = cursor.fetchall()
-
+    
+    # Renderizar la plantilla para la solicitud GET
     return render_template('reparacion_migracion.html', usuarios_no_admin=usuarios_no_admin)
 
 
@@ -935,7 +977,7 @@ def detalle_instalacion(id):
         conexion.close()
         flash("Instalación no encontrada.", "error")
         return redirect(url_for('index'))
-    sql_reservas = "SELECT reservas.*, u.nombre AS nombre_cliente FROM reservas r JOIN usuarios u ON r.id_usuario = u.id_usuario WHERE id_instalacion = %s ORDER BY fecha, hora_inicio"
+    sql_reservas = "SELECT r.*, u.nombre AS nombre_cliente FROM reservas r JOIN usuarios u ON r.id_usuario = u.id_usuario WHERE r.id_instalacion = %s ORDER BY r.fecha, r.hora_inicio"
     cursor.execute(sql_reservas, (id,))
     reservas = cursor.fetchall()
     cursor.close()
@@ -1129,6 +1171,7 @@ def exportar_tareas_excel():
             t.estado,
             i.descripcion_final,
             i.ubicacion_gps_final,
+            i.foto_adjunta,
             i.fecha_completado,
             u.nombre AS tecnico_asignado
         FROM tareas t
@@ -1581,7 +1624,17 @@ def cliente_dashboard():
 def inventario_admin():
     conexion = get_db_connection()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM inventario ORDER BY fecha_ingreso DESC")
+    cursor.execute("""
+        SELECT
+            i.*,
+            u.nombre AS nombre_tecnico,
+            MAX(inst.fecha_completado) AS fecha_instalacion
+        FROM inventario i
+        LEFT JOIN instalaciones inst ON i.id_equipo = inst.id_equipo_instalado
+        LEFT JOIN usuarios u ON inst.id_instalador = u.id_usuario
+        GROUP BY i.id_equipo
+        ORDER BY i.fecha_ingreso DESC
+    """)
     inventario = cursor.fetchall()
     cursor.close()
     conexion.close()
@@ -1666,6 +1719,49 @@ def inventario_eliminar(id):
         conexion.close()
     
     return redirect(url_for('inventario_admin'))
+
+@app.route('/admin/inventario/exportar')
+@admin_required
+def exportar_inventario():
+    conexion = get_db_connection()
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            i.numero_serie,
+            i.modelo,
+            i.estado,
+            i.fecha_ingreso,
+            MAX(inst.fecha_completado) AS fecha_instalacion,
+            u.nombre AS nombre_tecnico
+        FROM inventario i
+        LEFT JOIN instalaciones inst ON i.id_equipo = inst.id_equipo_instalado
+        LEFT JOIN usuarios u ON inst.id_instalador = u.id_usuario
+        GROUP BY i.id_equipo
+        ORDER BY i.fecha_ingreso DESC
+    """)
+    inventario = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    if not inventario:
+        flash("No hay equipos en el inventario para exportar.", "error")
+        return redirect(url_for('inventario_admin'))
+
+    df = pd.DataFrame(inventario)
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='openpyxl')
+    df.to_excel(writer, index=False, sheet_name='Inventario de Equipos')
+    writer.close()
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        download_name='inventario.xlsx',
+        as_attachment=True
+    )
+
 
 @app.route('/api/clientes', methods=['GET'])
 def api_clientes():

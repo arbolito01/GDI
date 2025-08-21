@@ -95,7 +95,7 @@
 
 <div class="form-group">
     <label for="numero_serie_equipo" class="required">Número de Serie del equipo instalado:</label>
-    <select id="numero_serie_equipo" name="numero_serie_equipo" required class="form-select">
+    <select id="numero_serie_equipo" name="id_equipo_instalado" required class="form-select">
         <option value="">Selecciona un equipo</option>
         {% for equipo in inventario_disponible %}
         <option value="{{ equipo.id_equipo }}">{{ equipo.numero_serie }} ({{ equipo.modelo }})</option>
@@ -129,7 +129,7 @@
 
             <div class="form-group">
                 <label for="fotos" class="required">Fotos de la instalación:</label>
-                <input type="file" id="fotos" name="fotos[]" accept="image/*" multiple required>
+                <input type="file" id="fotos" name="fotos[]" accept="image/*" multiple required capture="environment">
             </div>
 
             <h2 class="form-section-title mt-6">Ubicación GPS (Obligatoria)</h2>

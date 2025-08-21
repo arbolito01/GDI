@@ -34,6 +34,9 @@
                 </div>
                 <button type="submit" class="btn-primary w-full">Añadir Equipo</button>
             </form>
+            <a href="{{ url_for('exportar_inventario') }}" class="btn-primary w-full mt-4">
+                Exportar Inventario (Excel)
+            </a>
         </div>
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="form-section-title">Equipos Existentes</h2>
@@ -44,6 +47,9 @@
                             <th class="py-3 px-6 text-left">N.º de Serie</th>
                             <th class="py-3 px-6 text-left">Modelo</th>
                             <th class="py-3 px-6 text-left">Estado</th>
+                            <th class="py-3 px-6 text-left">Fecha de Ingreso</th>
+                            <th class="py-3 px-6 text-left">Fecha Instalada</th>
+                            <th class="py-3 px-6 text-left">Técnico que usó el equipo</th>
                             <th class="py-3 px-6 text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -58,12 +64,19 @@
                                     {{ equipo.estado }}
                                 </span>
                             </td>
+                            <td class="py-3 px-6 text-left">{{ equipo.fecha_ingreso or 'N/A' }}</td>
+                            <td class="py-3 px-6 text-left">{{ equipo.fecha_instalacion.strftime('%d/%m/%Y') if equipo.fecha_instalacion else 'N/A' }}</td>
+                            <td class="py-3 px-6 text-left">{{ equipo.nombre_tecnico or 'N/A' }}</td>
                             <td class="py-3 px-6 text-center whitespace-nowrap">
                                 <a href="{{ url_for('inventario_editar', id=equipo.id_equipo) }}" class="text-blue-500 hover:text-blue-700 mx-1">Editar</a>
                                 <form action="{{ url_for('inventario_eliminar', id=equipo.id_equipo) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este equipo?');">
                                     <button type="submit" class="text-red-500 hover:text-red-700 mx-1">Eliminar</button>
                                 </form>
                             </td>
+                        </tr>
+                        {% else %}
+                        <tr class="border-b border-gray-200">
+                            <td colspan="6" class="py-3 px-6 text-center">No hay equipos en el inventario.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
