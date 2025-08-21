@@ -863,3 +863,160 @@
 2025-08-19 01:17:05,270 INFO:127.0.0.1 - - [19/Aug/2025 01:17:05] "GET /api/tecnico_stats/3 HTTP/1.1" 200 -
 2025-08-19 01:18:00,277 INFO: * Detected change in 'D:\\ss\\gestor_instalaciones\\app.py', reloading
 2025-08-19 01:18:00,398 INFO: * Restarting with stat
+2025-08-19 01:18:01,632 WARNING: * Debugger is active!
+2025-08-19 01:18:01,635 INFO: * Debugger PIN: 811-729-477
+2025-08-19 01:18:05,113 INFO:127.0.0.1 - - [19/Aug/2025 01:18:05] "GET /tecnico/dashboard HTTP/1.1" 200 -
+2025-08-19 01:18:05,155 INFO:127.0.0.1 - - [19/Aug/2025 01:18:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:05,196 INFO:127.0.0.1 - - [19/Aug/2025 01:18:05] "GET /api/tecnico_stats/2 HTTP/1.1" 200 -
+2025-08-19 01:18:05,766 INFO:127.0.0.1 - - [19/Aug/2025 01:18:05] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:05,776 INFO:127.0.0.1 - - [19/Aug/2025 01:18:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:09,213 INFO:127.0.0.1 - - [19/Aug/2025 01:18:09] "GET /mis_tareas_completadas HTTP/1.1" 200 -
+2025-08-19 01:18:09,223 INFO:127.0.0.1 - - [19/Aug/2025 01:18:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:10,052 INFO:127.0.0.1 - - [19/Aug/2025 01:18:10] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:10,061 INFO:127.0.0.1 - - [19/Aug/2025 01:18:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:13,890 INFO:127.0.0.1 - - [19/Aug/2025 01:18:13] "[32mPOST /solicitar_traspaso HTTP/1.1[0m" 302 -
+2025-08-19 01:18:13,895 INFO:127.0.0.1 - - [19/Aug/2025 01:18:13] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:13,906 INFO:127.0.0.1 - - [19/Aug/2025 01:18:13] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:23,069 INFO:127.0.0.1 - - [19/Aug/2025 01:18:23] "GET / HTTP/1.1" 200 -
+2025-08-19 01:18:23,089 INFO:127.0.0.1 - - [19/Aug/2025 01:18:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:24,944 INFO:127.0.0.1 - - [19/Aug/2025 01:18:24] "GET /tecnico/dashboard HTTP/1.1" 200 -
+2025-08-19 01:18:24,967 INFO:127.0.0.1 - - [19/Aug/2025 01:18:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:24,977 INFO:127.0.0.1 - - [19/Aug/2025 01:18:24] "GET /api/tecnico_stats/3 HTTP/1.1" 200 -
+2025-08-19 01:18:25,602 INFO:127.0.0.1 - - [19/Aug/2025 01:18:25] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:25,623 INFO:127.0.0.1 - - [19/Aug/2025 01:18:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:28,564 INFO:127.0.0.1 - - [19/Aug/2025 01:18:28] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:28,579 INFO:127.0.0.1 - - [19/Aug/2025 01:18:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:38,982 INFO:127.0.0.1 - - [19/Aug/2025 01:18:38] "[32mPOST /gestionar_traspaso HTTP/1.1[0m" 302 -
+2025-08-19 01:18:38,989 INFO:127.0.0.1 - - [19/Aug/2025 01:18:38] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:39,010 INFO:127.0.0.1 - - [19/Aug/2025 01:18:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:18:45,610 INFO:127.0.0.1 - - [19/Aug/2025 01:18:45] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:18:45,619 INFO:127.0.0.1 - - [19/Aug/2025 01:18:45] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:19:08,880 INFO:127.0.0.1 - - [19/Aug/2025 01:19:08] "GET / HTTP/1.1" 200 -
+2025-08-19 01:19:08,891 INFO:127.0.0.1 - - [19/Aug/2025 01:19:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:19:10,973 INFO:127.0.0.1 - - [19/Aug/2025 01:19:10] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:19:10,982 INFO:127.0.0.1 - - [19/Aug/2025 01:19:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:19:16,911 INFO:127.0.0.1 - - [19/Aug/2025 01:19:16] "GET /mis_reservas HTTP/1.1" 200 -
+2025-08-19 01:19:16,925 INFO:127.0.0.1 - - [19/Aug/2025 01:19:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:19:17,335 INFO:127.0.0.1 - - [19/Aug/2025 01:19:17] "GET /mis_tareas_completadas_calendario HTTP/1.1" 200 -
+2025-08-19 01:19:17,344 INFO:127.0.0.1 - - [19/Aug/2025 01:19:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:19:17,369 INFO:127.0.0.1 - - [19/Aug/2025 01:19:17] "GET /api/mis_tareas_completadas?start=2025-07-27T00:00:00-05:00&end=2025-09-07T00:00:00-05:00 HTTP/1.1" 200 -
+2025-08-19 01:30:45,338 INFO:192.168.1.8 - - [19/Aug/2025 01:30:45] "[32mGET / HTTP/1.1[0m" 302 -
+2025-08-19 01:30:45,357 INFO:192.168.1.8 - - [19/Aug/2025 01:30:45] "GET /login HTTP/1.1" 200 -
+2025-08-19 01:30:45,421 INFO:192.168.1.8 - - [19/Aug/2025 01:30:45] "GET /static/style.css HTTP/1.1" 200 -
+2025-08-19 01:30:46,677 INFO:192.168.1.8 - - [19/Aug/2025 01:30:46] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-19 01:30:58,022 INFO:192.168.1.8 - - [19/Aug/2025 01:30:58] "POST /login HTTP/1.1" 200 -
+2025-08-19 01:30:58,093 INFO:192.168.1.8 - - [19/Aug/2025 01:30:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:31:04,413 INFO:192.168.1.8 - - [19/Aug/2025 01:31:04] "POST /login HTTP/1.1" 200 -
+2025-08-19 01:31:04,472 INFO:192.168.1.8 - - [19/Aug/2025 01:31:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:31:18,400 INFO:192.168.1.8 - - [19/Aug/2025 01:31:18] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-08-19 01:31:18,421 INFO:192.168.1.8 - - [19/Aug/2025 01:31:18] "GET / HTTP/1.1" 200 -
+2025-08-19 01:31:18,489 INFO:192.168.1.8 - - [19/Aug/2025 01:31:18] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:31:26,070 INFO:192.168.1.8 - - [19/Aug/2025 01:31:26] "GET /completar_instalacion/1 HTTP/1.1" 200 -
+2025-08-19 01:31:26,117 INFO:192.168.1.8 - - [19/Aug/2025 01:31:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:32:18,504 INFO:192.168.1.8 - - [19/Aug/2025 01:32:18] "[32mGET /completar_instalacion/1 HTTP/1.1[0m" 302 -
+2025-08-19 01:32:18,552 INFO:192.168.1.8 - - [19/Aug/2025 01:32:18] "GET /login HTTP/1.1" 200 -
+2025-08-19 01:32:18,644 INFO:192.168.1.8 - - [19/Aug/2025 01:32:18] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-19 01:32:30,805 INFO:192.168.1.8 - - [19/Aug/2025 01:32:30] "POST /login HTTP/1.1" 200 -
+2025-08-19 01:32:30,859 INFO:192.168.1.8 - - [19/Aug/2025 01:32:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:32:41,464 INFO:192.168.1.8 - - [19/Aug/2025 01:32:41] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-08-19 01:32:41,488 INFO:192.168.1.8 - - [19/Aug/2025 01:32:41] "GET / HTTP/1.1" 200 -
+2025-08-19 01:32:41,573 INFO:192.168.1.8 - - [19/Aug/2025 01:32:41] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:32:44,691 INFO:192.168.1.8 - - [19/Aug/2025 01:32:44] "GET /completar_instalacion/1 HTTP/1.1" 200 -
+2025-08-19 01:32:44,723 INFO:192.168.1.8 - - [19/Aug/2025 01:32:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:34:31,977 INFO:192.168.1.8 - - [19/Aug/2025 01:34:31] "GET /tecnico/dashboard HTTP/1.1" 200 -
+2025-08-19 01:34:31,998 INFO:192.168.1.8 - - [19/Aug/2025 01:34:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:34:32,031 INFO:192.168.1.8 - - [19/Aug/2025 01:34:32] "GET /api/tecnico_stats/2 HTTP/1.1" 200 -
+2025-08-19 01:34:34,102 INFO:192.168.1.8 - - [19/Aug/2025 01:34:34] "GET /mis_tareas_completadas_calendario HTTP/1.1" 200 -
+2025-08-19 01:34:34,150 INFO:192.168.1.8 - - [19/Aug/2025 01:34:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:34:34,995 INFO:192.168.1.8 - - [19/Aug/2025 01:34:34] "GET /api/mis_tareas_completadas?start=2025-07-27T00:00:00-05:00&end=2025-09-07T00:00:00-05:00 HTTP/1.1" 200 -
+2025-08-19 01:34:50,465 INFO:192.168.1.8 - - [19/Aug/2025 01:34:50] "GET /mis_reservas HTTP/1.1" 200 -
+2025-08-19 01:34:50,501 INFO:192.168.1.8 - - [19/Aug/2025 01:34:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:34:51,564 INFO:192.168.1.8 - - [19/Aug/2025 01:34:51] "GET /mis_tareas_completadas_calendario HTTP/1.1" 200 -
+2025-08-19 01:34:51,631 INFO:192.168.1.8 - - [19/Aug/2025 01:34:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:34:51,677 INFO:192.168.1.8 - - [19/Aug/2025 01:34:51] "GET /api/mis_tareas_completadas?start=2025-07-27T00:00:00-05:00&end=2025-09-07T00:00:00-05:00 HTTP/1.1" 200 -
+2025-08-19 01:34:52,193 INFO:192.168.1.8 - - [19/Aug/2025 01:34:52] "GET /mis_tareas_completadas HTTP/1.1" 200 -
+2025-08-19 01:34:52,255 INFO:192.168.1.8 - - [19/Aug/2025 01:34:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:34:54,283 INFO:192.168.1.8 - - [19/Aug/2025 01:34:54] "GET /mis_tareas HTTP/1.1" 200 -
+2025-08-19 01:34:54,337 INFO:192.168.1.8 - - [19/Aug/2025 01:34:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:35:23,494 INFO:192.168.1.8 - - [19/Aug/2025 01:35:23] "GET / HTTP/1.1" 200 -
+2025-08-19 01:35:23,580 INFO:192.168.1.8 - - [19/Aug/2025 01:35:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:35:39,910 INFO:192.168.1.8 - - [19/Aug/2025 01:35:39] "GET /mis_tareas_completadas_calendario HTTP/1.1" 200 -
+2025-08-19 01:35:39,961 INFO:192.168.1.8 - - [19/Aug/2025 01:35:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-19 01:35:40,038 INFO:192.168.1.8 - - [19/Aug/2025 01:35:40] "GET /api/mis_tareas_completadas?start=2025-07-27T00:00:00-05:00&end=2025-09-07T00:00:00-05:00 HTTP/1.1" 200 -
+2025-08-19 08:26:57,338 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.7:5000
+2025-08-19 08:26:57,338 INFO:[33mPress CTRL+C to quit[0m
+2025-08-19 08:26:57,342 INFO: * Restarting with stat
+2025-08-19 08:26:58,820 WARNING: * Debugger is active!
+2025-08-19 08:26:58,824 INFO: * Debugger PIN: 811-729-477
+2025-08-19 08:28:02,559 INFO:192.168.1.16 - - [19/Aug/2025 08:28:02] "[32mGET / HTTP/1.1[0m" 302 -
+2025-08-19 08:28:02,590 INFO:192.168.1.16 - - [19/Aug/2025 08:28:02] "GET /login HTTP/1.1" 200 -
+2025-08-19 08:28:02,687 INFO:192.168.1.16 - - [19/Aug/2025 08:28:02] "GET /static/style.css HTTP/1.1" 200 -
+2025-08-19 08:28:03,237 INFO:192.168.1.16 - - [19/Aug/2025 08:28:03] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-19 08:28:22,462 INFO:192.168.1.16 - - [19/Aug/2025 08:28:22] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:28:33,328 INFO:192.168.1.16 - - [19/Aug/2025 08:28:33] "[33mGET /clientes/login HTTP/1.1[0m" 404 -
+2025-08-19 08:29:09,019 INFO:127.0.0.1 - - [19/Aug/2025 08:29:09] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:09,459 INFO:127.0.0.1 - - [19/Aug/2025 08:29:09] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-19 08:29:32,501 INFO:127.0.0.1 - - [19/Aug/2025 08:29:32] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:33,461 INFO:127.0.0.1 - - [19/Aug/2025 08:29:33] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:34,261 INFO:127.0.0.1 - - [19/Aug/2025 08:29:34] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:34,632 INFO:127.0.0.1 - - [19/Aug/2025 08:29:34] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:34,828 INFO:127.0.0.1 - - [19/Aug/2025 08:29:34] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:35,238 INFO:127.0.0.1 - - [19/Aug/2025 08:29:35] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:29:47,515 INFO:127.0.0.1 - - [19/Aug/2025 08:29:47] "[32mGET /mis_tareas HTTP/1.1[0m" 302 -
+2025-08-19 08:29:47,719 INFO:127.0.0.1 - - [19/Aug/2025 08:29:47] "GET /login HTTP/1.1" 200 -
+2025-08-19 08:29:48,079 INFO:127.0.0.1 - - [19/Aug/2025 08:29:48] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-19 08:29:52,016 INFO:127.0.0.1 - - [19/Aug/2025 08:29:52] "[33mGET /clientes HTTP/1.1[0m" 404 -
+2025-08-19 08:41:24,080 INFO:192.168.1.17 - - [19/Aug/2025 08:41:24] "[33mGET /clientes/login HTTP/1.1[0m" 404 -
+2025-08-19 09:28:36,704 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.7:5000
+2025-08-19 09:28:36,705 INFO:[33mPress CTRL+C to quit[0m
+2025-08-19 09:28:36,706 INFO: * Restarting with stat
+2025-08-19 09:28:37,619 WARNING: * Debugger is active!
+2025-08-19 09:28:37,621 INFO: * Debugger PIN: 811-729-477
+2025-08-20 09:46:36,119 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.7:5000
+2025-08-20 09:46:36,120 INFO:[33mPress CTRL+C to quit[0m
+2025-08-20 09:46:36,122 INFO: * Restarting with stat
+2025-08-20 09:46:37,139 WARNING: * Debugger is active!
+2025-08-20 09:46:37,141 INFO: * Debugger PIN: 811-729-477
+2025-08-20 09:47:48,782 INFO:127.0.0.1 - - [20/Aug/2025 09:47:48] "GET /cliente/login HTTP/1.1" 200 -
+2025-08-20 09:47:48,853 INFO:127.0.0.1 - - [20/Aug/2025 09:47:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 09:47:48,871 INFO:127.0.0.1 - - [20/Aug/2025 09:47:48] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-08-20 09:48:23,386 INFO:127.0.0.1 - - [20/Aug/2025 09:48:23] "[32mPOST /cliente/login HTTP/1.1[0m" 302 -
+2025-08-20 09:48:23,497 INFO:127.0.0.1 - - [20/Aug/2025 09:48:23] "GET /cliente/dashboard HTTP/1.1" 200 -
+2025-08-20 09:48:23,509 INFO:127.0.0.1 - - [20/Aug/2025 09:48:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 09:48:48,549 INFO:127.0.0.1 - - [20/Aug/2025 09:48:48] "GET /cliente/registro HTTP/1.1" 200 -
+2025-08-20 09:48:48,556 INFO:127.0.0.1 - - [20/Aug/2025 09:48:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 09:49:10,410 INFO:127.0.0.1 - - [20/Aug/2025 09:49:10] "[32mPOST /cliente/registro HTTP/1.1[0m" 302 -
+2025-08-20 09:49:10,414 INFO:127.0.0.1 - - [20/Aug/2025 09:49:10] "GET /cliente/registro HTTP/1.1" 200 -
+2025-08-20 09:49:10,422 INFO:127.0.0.1 - - [20/Aug/2025 09:49:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 09:49:21,073 INFO:127.0.0.1 - - [20/Aug/2025 09:49:21] "GET /cliente/login HTTP/1.1" 200 -
+2025-08-20 09:49:21,082 INFO:127.0.0.1 - - [20/Aug/2025 09:49:21] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 09:49:26,445 INFO:127.0.0.1 - - [20/Aug/2025 09:49:26] "[32mPOST /cliente/login HTTP/1.1[0m" 302 -
+2025-08-20 09:49:26,497 INFO:127.0.0.1 - - [20/Aug/2025 09:49:26] "GET /cliente/dashboard HTTP/1.1" 200 -
+2025-08-20 09:49:26,507 INFO:127.0.0.1 - - [20/Aug/2025 09:49:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:23:55,455 INFO:127.0.0.1 - - [20/Aug/2025 11:23:55] "[32mGET /cliente/logout HTTP/1.1[0m" 302 -
+2025-08-20 11:23:55,461 INFO:127.0.0.1 - - [20/Aug/2025 11:23:55] "GET /cliente/login HTTP/1.1" 200 -
+2025-08-20 11:23:55,480 INFO:127.0.0.1 - - [20/Aug/2025 11:23:55] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:24:05,896 INFO:127.0.0.1 - - [20/Aug/2025 11:24:05] "GET /cliente/registro HTTP/1.1" 200 -
+2025-08-20 11:24:05,904 INFO:127.0.0.1 - - [20/Aug/2025 11:24:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:24:16,233 INFO:127.0.0.1 - - [20/Aug/2025 11:24:16] "[32mPOST /cliente/registro HTTP/1.1[0m" 302 -
+2025-08-20 11:24:16,237 INFO:127.0.0.1 - - [20/Aug/2025 11:24:16] "GET /cliente/registro HTTP/1.1" 200 -
+2025-08-20 11:24:16,244 INFO:127.0.0.1 - - [20/Aug/2025 11:24:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:24:24,937 INFO:127.0.0.1 - - [20/Aug/2025 11:24:24] "GET /cliente/login HTTP/1.1" 200 -
+2025-08-20 11:24:24,945 INFO:127.0.0.1 - - [20/Aug/2025 11:24:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:24:30,899 INFO:127.0.0.1 - - [20/Aug/2025 11:24:30] "[32mPOST /cliente/login HTTP/1.1[0m" 302 -
+2025-08-20 11:24:30,952 INFO:127.0.0.1 - - [20/Aug/2025 11:24:30] "GET /cliente/dashboard HTTP/1.1" 200 -
+2025-08-20 11:24:30,963 INFO:127.0.0.1 - - [20/Aug/2025 11:24:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:24:47,034 INFO:127.0.0.1 - - [20/Aug/2025 11:24:47] "GET /cliente/dashboard HTTP/1.1" 200 -
+2025-08-20 11:24:47,040 INFO:127.0.0.1 - - [20/Aug/2025 11:24:47] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-08-20 11:24:53,167 INFO:127.0.0.1 - - [20/Aug/2025 11:24:53] "[32mPOST /cliente/login HTTP/1.1[0m" 302 -
+2025-08-20 11:24:53,218 INFO:127.0.0.1 - - [20/Aug/2025 11:24:53] "GET /cliente/dashboard HTTP/1.1" 200 -
+2025-08-20 11:24:53,228 INFO:127.0.0.1 - - [20/Aug/2025 11:24:53] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
