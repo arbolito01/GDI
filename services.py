@@ -10,6 +10,7 @@ from database import get_db_connection
 # Leer variables de entorno para WhatsApp
 whatsapp_token = os.getenv("WHATSAPP_TOKEN")
 phone_number_id = os.getenv("PHONE_NUMBER_ID")
+adl_api_url = os.getenv("ADL_API_URL") # Nueva URL para la API de AdL
 
 def send_whatsapp_notification(recipient_number, message_text):
     """
@@ -48,7 +49,7 @@ def send_whatsapp_notification(recipient_number, message_text):
 def create_new_installation(
     nombre_instalacion, descripcion, hora_solicitada, tecnico_asignado_id,
     dni_cliente, nombre_cliente, telefono_cliente, referencia_domicilio,
-    id_admin, imagen_url="", ubicacion_gps=""
+    id_admin, imagen_url="", ubicacion_gps="", onu_sn="", plan_servicio=""
 ):
     conexion = get_db_connection()
     if not conexion:
@@ -66,7 +67,6 @@ def create_new_installation(
         else:
             pppoe_password = uuid.uuid4().hex[:8].upper()
             nombre_formateado = nombre_cliente.upper().replace(' ', '-')
-            # Buscar el último número en la base de datos para generar uno nuevo
             cursor.execute("SELECT MAX(SUBSTRING_INDEX(codigo_cliente, '-', 1)) AS ultimo_numero FROM clientes WHERE codigo_cliente LIKE '5%'")
             ultimo_numero_str = cursor.fetchone()['ultimo_numero']
             if ultimo_numero_str and ultimo_numero_str.isdigit():
@@ -76,14 +76,30 @@ def create_new_installation(
             codigo_cliente = f"{nuevo_numero}-{nombre_formateado}"
 
             sql_insert_cliente = """
-                INSERT INTO clientes (nombre, telefono, direccion, dni, codigo_cliente, pppoe_password) 
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO clientes (nombre, telefono, direccion, dni, codigo_cliente, pppoe_password, plan) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            valores_cliente = (nombre_cliente, telefono_cliente, referencia_domicilio, dni_cliente, codigo_cliente, pppoe_password)
+            valores_cliente = (nombre_cliente, telefono_cliente, referencia_domicilio, dni_cliente, codigo_cliente, pppoe_password, plan_servicio)
             cursor.execute(sql_insert_cliente, valores_cliente)
             id_cliente = cursor.lastrowid
         
-        # 2. Insertar la instalación
+        # 2. Llamar a la API de AdL para aprovisionar el cliente
+        if adl_api_url:
+            payload = {
+                "nombre": nombre_cliente,
+                "onu_sn": onu_sn,
+                "plan_servicio": plan_servicio,
+                "pppoe_password": pppoe_password
+            }
+            try:
+                response = requests.post(f"{adl_api_url}/api/crear/", json=payload)
+                response.raise_for_status()
+                logging.info(f"Solicitud a API de AdL para crear cliente {nombre_cliente} enviada con éxito.")
+            except requests.exceptions.RequestException as e:
+                logging.error(f"Error al llamar a la API de AdL: {e}")
+                raise Exception(f"Fallo en la comunicación con el sistema de red: {e}")
+        
+        # 3. Insertar la instalación en GDI
         sql_insert_instalacion = """
             INSERT INTO instalaciones (id_cliente, nombre, descripcion, imagen_url, hora_solicitada, tecnico_asignado, id_instalador, estado)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -95,7 +111,7 @@ def create_new_installation(
         cursor.execute(sql_insert_instalacion, valores_instalacion)
         id_instalacion_creada = cursor.lastrowid
         
-        # 3. Insertar la tarea
+        # 4. Insertar la tarea en GDI
         descripcion_tarea = f"Instalación de {nombre_instalacion} para el cliente {nombre_cliente}"
         sql_insert_tarea = """
             INSERT INTO tareas (id_instalacion, id_admin, id_usuario_asignado, tipo_tarea, descripcion, fecha_asignacion, estado)
@@ -106,7 +122,7 @@ def create_new_installation(
         
         conexion.commit()
 
-        # 4. Enviar notificación al técnico asignado
+        # 5. Enviar notificación al técnico asignado
         cursor.execute("SELECT telefono FROM usuarios WHERE id_usuario = %s", (tecnico_asignado_id,))
         telefono_tecnico = cursor.fetchone()['telefono']
         if telefono_tecnico:

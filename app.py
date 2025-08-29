@@ -33,6 +33,8 @@ imported_clients_data = []
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'tu_clave_secreta_aqui')
 
+adl_api_url = os.getenv("ADL_API_URL")
+
 # --- Configuración de Archivos ---
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -285,10 +287,15 @@ def admin():
     tareas = cursor.fetchall()
     cursor.execute("SELECT id_usuario, nombre FROM usuarios WHERE es_admin = 0")
     tecnicos = cursor.fetchall()
+
+    # Consulta para obtener solicitudes de OLT pendientes
+    cursor.execute("SELECT * FROM solicitudes_olt WHERE estado = 'Pendiente' ORDER BY fecha_creacion DESC")
+    solicitudes_olt = cursor.fetchall()
+    
     cursor.close()
     conexion.close()
 
-    return render_template('admin.html', instalaciones=instalaciones, reservas=reservas, usuarios=usuarios, tareas=tareas, tecnicos=tecnicos)
+    return render_template('admin.html', instalaciones=instalaciones, reservas=reservas, usuarios=usuarios, tareas=tareas, tecnicos=tecnicos, solicitudes_olt=solicitudes_olt)
 
 @app.route('/nueva-instalacion', methods=['GET', 'POST'])
 @login_required

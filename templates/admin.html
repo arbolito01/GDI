@@ -16,6 +16,85 @@
         {% endif %}
     {% endwith %}
 
+<h2 class="form-section-title mt-8 mb-4">Gestión de Clientes</h2>
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow-md mt-4">
+        <thead>
+            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                <th class="py-3 px-6 text-left">ID</th>
+                <th class="py-3 px-6 text-left">Nombre</th>
+                <th class="py-3 px-6 text-left">Teléfono</th>
+                <th class="py-3 px-6 text-left">Estado de Pago</th>
+                <th class="py-3 px-6 text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm font-light">
+            {% for cliente in clientes %}
+            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                <td class="py-3 px-6 text-left whitespace-nowrap">{{ cliente.id_cliente }}</td>
+                <td class="py-3 px-6 text-left">{{ cliente.nombre }}</td>
+                <td class="py-3 px-6 text-left">{{ cliente.telefono_cliente }}</td>
+                <td class="py-3 px-6 text-left">
+                    <span class="py-1 px-3 rounded-full text-xs font-semibold
+                        {% if cliente.estado_pago == 'Al día' %}bg-green-200 text-green-600{% elif cliente.estado_pago == 'Cortado' %}bg-red-200 text-red-600{% else %}bg-yellow-200 text-yellow-600{% endif %}">
+                        {{ cliente.estado_pago or 'N/A' }}
+                    </span>
+                </td>
+                <td class="py-3 px-6 text-center whitespace-nowrap">
+                    {% if cliente.estado_pago == 'Cortado' %}
+                        <form action="{{ url_for('reconectar_cliente', id_cliente=cliente.id_cliente) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de que quieres reconectar a este cliente?');">
+                            <button type="submit" class="text-green-500 hover:text-green-700 mx-1">Reconectar</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<h2 class="form-section-title mt-8 mb-4">Solicitudes de OLT Pendientes</h2>
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow-md mt-4">
+        <thead>
+            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                <th class="py-3 px-6 text-left">ID</th>
+                <th class="py-3 px-6 text-left">Tipo</th>
+                <th class="py-3 px-6 text-left">ONU S/N</th>
+                <th class="py-3 px-6 text-left">Estado</th>
+                <th class="py-3 px-6 text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm font-light">
+            {% for solicitud in solicitudes_olt %}
+            <tr class="border-b border-gray-200 hover:bg-gray-100">
+                <td class="py-3 px-6 text-left">{{ solicitud.id_solicitud }}</td>
+                <td class="py-3 px-6 text-left">{{ solicitud.tipo_solicitud }}</td>
+                <td class="py-3 px-6 text-left">{{ solicitud.onu_sn }}</td>
+                <td class="py-3 px-6 text-left">
+                    <span class="py-1 px-3 rounded-full text-xs font-semibold
+                        {% if solicitud.estado == 'Pendiente' %}bg-yellow-200 text-yellow-600{% elif solicitud.estado == 'Aprobada' %}bg-green-200 text-green-600{% else %}bg-red-200 text-red-600{% endif %}">
+                        {{ solicitud.estado }}
+                    </span>
+                </td>
+                <td class="py-3 px-6 text-center whitespace-nowrap">
+                    {% if solicitud.estado == 'Pendiente' %}
+                    <form action="{{ url_for('aprobar_solicitud', id_solicitud=solicitud.id_solicitud) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Aprobar esta solicitud?');">
+                        <button type="submit" class="text-green-500 hover:text-green-700 mx-1">Aprobar</button>
+                    </form>
+                    <form action="{{ url_for('rechazar_solicitud', id_solicitud=solicitud.id_solicitud) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Rechazar esta solicitud?');">
+                        <button type="submit" class="text-red-500 hover:text-red-700 mx-1">Rechazar</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
     <h2 class="form-section-title mt-8 mb-4">Gestión de Solicitudes/Instalaciones</h2>
     <a href="{{ url_for('nueva_instalacion') }}" class="btn-primary mb-6">
         Añadir Nueva Instalación

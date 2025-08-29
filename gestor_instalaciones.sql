@@ -1,8 +1,8 @@
 -- --------------------------------------------------------
--- Host:                         localhost
--- Versión del servidor:         9.1.0 - MySQL Community Server - GPL
--- SO del servidor:              Win64
--- HeidiSQL Versión:             12.11.0.7065
+-- Host:                         127.0.0.1
+-- Server version:               9.1.0 - MySQL Community Server - GPL
+-- Server OS:                    Win64
+-- HeidiSQL Version:             12.10.0.7000
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -15,29 +15,29 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
--- Volcando estructura de base de datos para gestor_instalaciones
+-- Dumping database structure for gestor_instalaciones
 DROP DATABASE IF EXISTS `gestor_instalaciones`;
 CREATE DATABASE IF NOT EXISTS `gestor_instalaciones` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `gestor_instalaciones`;
 
--- Volcando estructura para tabla gestor_instalaciones.clientes
+-- Dumping structure for table gestor_instalaciones.clientes
 DROP TABLE IF EXISTS `clientes`;
 CREATE TABLE IF NOT EXISTS `clientes` (
   `id_cliente` int unsigned NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `telefono` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `direccion` text COLLATE utf8mb4_general_ci,
-  `dni` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `codigo_cliente` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pppoe_password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `plan` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `direccion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `dni` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `codigo_cliente` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pppoe_password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `plan` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_cliente`),
   UNIQUE KEY `dni` (`dni`)
-) ENGINE=InnoDB AUTO_INCREMENT=903 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=905 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.clientes: ~815 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.clientes: ~37 rows (approximately)
 INSERT INTO `clientes` (`id_cliente`, `nombre`, `email`, `telefono`, `direccion`, `dni`, `codigo_cliente`, `pppoe_password`, `password`, `plan`) VALUES
 	(88, 'SAMIER COMPANERO DARWIN CAHUA ARAGON (MERCADO TIENDA DE SU ESPOSA)', NULL, '921869406', 'JR. JAQUIJAHUANA', NULL, NULL, NULL, NULL, 'PLAN HOGAR 15MB (50 SOLES))'),
 	(89, 'VIDAL SUYLLO TTITO PUCYURA', NULL, '998808042', 'PUCYURA', NULL, NULL, NULL, NULL, 'PLAN HOGAR 15MB (50 SOLES))'),
@@ -853,15 +853,17 @@ INSERT INTO `clientes` (`id_cliente`, `nombre`, `email`, `telefono`, `direccion`
 	(899, '9874984', NULL, '987654321', '9548', NULL, '5000-9874984', '62C657E8', NULL, NULL),
 	(900, 'VERONICA CASTILLO CONDORI', NULL, '937452857', 'HUAROCONDO', NULL, '5001-VERONICA-CASTILLO-CONDORI', 'AEB04BB8', NULL, NULL),
 	(901, 'CARMEN CHAMPI LEON', NULL, '946161576', 'YUNGAQUI - ENTRADA DE PACCA', NULL, '5002-CARMEN-CHAMPI-LEON', '66DB24F1', NULL, NULL),
-	(902, 'CARMEN ROSA AYMA LLOCLLA', NULL, '905433166', 'HUAROCONDO', NULL, '5003-CARMEN-ROSA-AYMA-LLOCLLA', 'E0123D6D', NULL, NULL);
+	(902, 'CARMEN ROSA AYMA LLOCLLA', NULL, '905433166', 'HUAROCONDO', NULL, '5003-CARMEN-ROSA-AYMA-LLOCLLA', 'E0123D6D', NULL, NULL),
+	(903, 'Adela huaman', NULL, '987654321', 'cerca a la pista ', NULL, '5004-ADELA-HUAMAN', 'B9785FFB', NULL, NULL),
+	(904, 'royer daniel', NULL, '987654321', 'calle arica', NULL, '5005-ROYER-DANIEL', 'E82513A8', NULL, NULL);
 
--- Volcando estructura para tabla gestor_instalaciones.clientes_usuarios
+-- Dumping structure for table gestor_instalaciones.clientes_usuarios
 DROP TABLE IF EXISTS `clientes_usuarios`;
 CREATE TABLE IF NOT EXISTS `clientes_usuarios` (
   `id_cliente_usuario` int unsigned NOT NULL AUTO_INCREMENT,
   `id_cliente` int unsigned NOT NULL,
-  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `activo` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id_cliente_usuario`),
   UNIQUE KEY `email` (`email`),
@@ -869,78 +871,84 @@ CREATE TABLE IF NOT EXISTS `clientes_usuarios` (
   CONSTRAINT `fk_cliente_usuario` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.clientes_usuarios: ~1 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.clientes_usuarios: ~1 rows (approximately)
 INSERT INTO `clientes_usuarios` (`id_cliente_usuario`, `id_cliente`, `email`, `password`, `activo`) VALUES
 	(1, 127, 'varies649@gmail.com', 'scrypt:32768:8:1$nFWXdkQki3ZQv1H8$9a299e11021f3e6a284a6b08a1babba6bd7dc46bacb7daf599790afd89c17d6ca4c880debb1c5d7fe271ba903d2c1d838a4f78c25c28e6c664cfb0ec641c00ff', 1);
 
--- Volcando estructura para tabla gestor_instalaciones.instalaciones
+-- Dumping structure for table gestor_instalaciones.instalaciones
 DROP TABLE IF EXISTS `instalaciones`;
 CREATE TABLE IF NOT EXISTS `instalaciones` (
   `id_instalacion` int unsigned NOT NULL AUTO_INCREMENT,
   `id_cliente` int unsigned NOT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `descripcion` text COLLATE utf8mb4_general_ci,
-  `imagen_url` text COLLATE utf8mb4_general_ci,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `imagen_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `hora_solicitada` time DEFAULT NULL,
-  `tecnico_asignado` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `tecnico_asignado` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `id_instalador` int DEFAULT NULL,
-  `descripcion_final` text COLLATE utf8mb4_general_ci,
-  `ubicacion_gps_final` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `foto_adjunta` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `metodo_pago` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `numero_transaccion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `descripcion_final` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `ubicacion_gps_final` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `foto_adjunta` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `metodo_pago` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `numero_transaccion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `fecha_completado` datetime DEFAULT NULL,
-  `estado` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Pendiente',
+  `estado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Pendiente',
   `id_equipo_instalado` int unsigned DEFAULT NULL,
   `fecha_creacion` datetime DEFAULT CURRENT_TIMESTAMP,
+  `id_zona` int DEFAULT NULL,
   PRIMARY KEY (`id_instalacion`),
   KEY `fk_instalaciones_cliente` (`id_cliente`),
   KEY `fk_instalaciones_equipo` (`id_equipo_instalado`),
   CONSTRAINT `fk_instalaciones_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`),
   CONSTRAINT `fk_instalaciones_equipo` FOREIGN KEY (`id_equipo_instalado`) REFERENCES `inventario` (`id_equipo`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.instalaciones: ~0 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.instalaciones: ~1 rows (approximately)
+INSERT INTO `instalaciones` (`id_instalacion`, `id_cliente`, `nombre`, `descripcion`, `imagen_url`, `hora_solicitada`, `tecnico_asignado`, `id_instalador`, `descripcion_final`, `ubicacion_gps_final`, `foto_adjunta`, `metodo_pago`, `numero_transaccion`, `fecha_completado`, `estado`, `id_equipo_instalado`, `fecha_creacion`, `id_zona`) VALUES
+	(5, 903, 'PLAN ULTRA', 'plan ultra', '', '11:00:00', '3', 3, NULL, '-13.455459,-72.147248', '["uploads/3a71eab014e944faa4f6cc91b494c4ab_Imagen_de_WhatsApp_2025-08-16_a_las_20.28.58_226d789e.jpg"]', 'efectivo', '', '2025-08-21 11:05:12', 'Completado', 26, '2025-08-21 10:58:44', NULL),
+	(6, 904, 'PLAN HOGAR 30MB (90 SOLES))', NULL, '', '18:08:00', '7', 7, NULL, '-13.412144,-72.204952', '["uploads/e6a81f2d16c249de907123fc56ef535d_images.jpeg"]', 'efectivo', '', '2025-08-21 17:10:14', 'Completado', 25, '2025-08-21 17:07:48', NULL),
+	(7, 370, 'Reparacion - DENIS ROYER CHAVEZ HUAMAN', NULL, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, NULL, NULL, 'Pendiente', NULL, '2025-08-21 17:17:43', NULL);
 
--- Volcando estructura para tabla gestor_instalaciones.inventario
+-- Dumping structure for table gestor_instalaciones.inventario
 DROP TABLE IF EXISTS `inventario`;
 CREATE TABLE IF NOT EXISTS `inventario` (
   `id_equipo` int unsigned NOT NULL AUTO_INCREMENT,
-  `numero_serie` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `modelo` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `estado` enum('Disponible','Asignado','Instalado','Dañado') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Disponible',
+  `numero_serie` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `modelo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `estado` enum('Disponible','Asignado','Instalado','Dañado') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Disponible',
   `fecha_ingreso` date NOT NULL,
+  `fecha_instalacion` date DEFAULT NULL,
   PRIMARY KEY (`id_equipo`),
   UNIQUE KEY `numero_serie` (`numero_serie`)
 ) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.inventario: ~23 rows (aproximadamente)
-INSERT INTO `inventario` (`id_equipo`, `numero_serie`, `modelo`, `estado`, `fecha_ingreso`) VALUES
-	(4, 'DC54AD63A8E7', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(5, 'DC54AD6396A7', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(6, 'DC54AD63ACFF', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(7, 'DC54AD63A427', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(8, 'DC54AD63983F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(9, 'DC54AD63B657', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(10, 'DC54AD63A2EF', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(11, 'DC54AD63B64F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(12, 'OPTI5563AF1F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(13, 'DC54AD63A127', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(14, 'DC54AD63B47F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(15, 'DC54AD63A23F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(16, 'DC54AD63A207', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(17, 'DC54AD63AABF', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(18, 'OPTI5563A70F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(19, 'DC54AD63B72F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(20, 'DC54AD63B367', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(21, 'DC54AD63A767', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(22, 'DC54AD63A64F', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(23, 'DC54AD63A8B7', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(24, 'DC54AD63AA27', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(25, 'DC54AD63AA07', 'OPTICTIMES', 'Disponible', '2025-08-20'),
-	(26, 'DC54AD63943F', 'OPTICTIMES', 'Disponible', '2025-08-20');
+-- Dumping data for table gestor_instalaciones.inventario: ~23 rows (approximately)
+INSERT INTO `inventario` (`id_equipo`, `numero_serie`, `modelo`, `estado`, `fecha_ingreso`, `fecha_instalacion`) VALUES
+	(4, 'DC54AD63A8E7', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(5, 'DC54AD6396A7', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(6, 'DC54AD63ACFF', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(7, 'DC54AD63A427', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(8, 'DC54AD63983F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(9, 'DC54AD63B657', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(10, 'DC54AD63A2EF', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(11, 'DC54AD63B64F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(12, 'OPTI5563AF1F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(13, 'DC54AD63A127', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(14, 'DC54AD63B47F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(15, 'DC54AD63A23F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(16, 'DC54AD63A207', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(17, 'DC54AD63AABF', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(18, 'OPTI5563A70F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(19, 'DC54AD63B72F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(20, 'DC54AD63B367', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(21, 'DC54AD63A767', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(22, 'DC54AD63A64F', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(23, 'DC54AD63A8B7', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(24, 'DC54AD63AA27', 'OPTICTIMES', 'Disponible', '2025-08-20', NULL),
+	(25, 'DC54AD63AA07', 'OPTICTIMES', 'Instalado', '2025-08-20', NULL),
+	(26, 'DC54AD63943F', 'OPTICTIMES', 'Instalado', '2025-08-20', NULL);
 
--- Volcando estructura para tabla gestor_instalaciones.reservas
+-- Dumping structure for table gestor_instalaciones.reservas
 DROP TABLE IF EXISTS `reservas`;
 CREATE TABLE IF NOT EXISTS `reservas` (
   `id_reserva` int unsigned NOT NULL AUTO_INCREMENT,
@@ -949,22 +957,22 @@ CREATE TABLE IF NOT EXISTS `reservas` (
   `fecha` date NOT NULL,
   `hora_inicio` time NOT NULL,
   `hora_fin` time NOT NULL,
-  `estado` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Confirmada',
+  `estado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Confirmada',
   PRIMARY KEY (`id_reserva`),
   KEY `id_instalacion` (`id_instalacion`),
   CONSTRAINT `reservas_ibfk_1` FOREIGN KEY (`id_instalacion`) REFERENCES `instalaciones` (`id_instalacion`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.reservas: ~0 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.reservas: ~0 rows (approximately)
 
--- Volcando estructura para tabla gestor_instalaciones.solicitudes_traspaso
+-- Dumping structure for table gestor_instalaciones.solicitudes_traspaso
 DROP TABLE IF EXISTS `solicitudes_traspaso`;
 CREATE TABLE IF NOT EXISTS `solicitudes_traspaso` (
   `id_solicitud` int unsigned NOT NULL AUTO_INCREMENT,
   `id_tarea` int NOT NULL,
   `id_solicitante` int unsigned NOT NULL,
   `id_receptor` int unsigned NOT NULL,
-  `estado` enum('Pendiente','Aceptada','Rechazada') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Pendiente',
+  `estado` enum('Pendiente','Aceptada','Rechazada') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Pendiente',
   `fecha_creacion` datetime NOT NULL,
   PRIMARY KEY (`id_solicitud`),
   KEY `id_tarea` (`id_tarea`),
@@ -975,19 +983,19 @@ CREATE TABLE IF NOT EXISTS `solicitudes_traspaso` (
   CONSTRAINT `solicitudes_traspaso_ibfk_3` FOREIGN KEY (`id_receptor`) REFERENCES `usuarios` (`id_usuario`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.solicitudes_traspaso: ~0 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.solicitudes_traspaso: ~0 rows (approximately)
 
--- Volcando estructura para tabla gestor_instalaciones.tareas
+-- Dumping structure for table gestor_instalaciones.tareas
 DROP TABLE IF EXISTS `tareas`;
 CREATE TABLE IF NOT EXISTS `tareas` (
   `id_tarea` int NOT NULL AUTO_INCREMENT,
   `id_instalacion` int unsigned NOT NULL,
   `id_admin` int unsigned NOT NULL,
   `id_usuario_asignado` int unsigned NOT NULL,
-  `tipo_tarea` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `descripcion` text COLLATE utf8mb4_general_ci NOT NULL,
+  `tipo_tarea` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `fecha_asignacion` date NOT NULL,
-  `estado` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `estado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id_tarea`),
   KEY `id_instalacion` (`id_instalacion`),
   KEY `id_admin` (`id_admin`),
@@ -995,37 +1003,41 @@ CREATE TABLE IF NOT EXISTS `tareas` (
   CONSTRAINT `fk_tareas_admin` FOREIGN KEY (`id_admin`) REFERENCES `usuarios` (`id_usuario`),
   CONSTRAINT `fk_tareas_instalacion` FOREIGN KEY (`id_instalacion`) REFERENCES `instalaciones` (`id_instalacion`),
   CONSTRAINT `fk_tareas_usuario_asignado` FOREIGN KEY (`id_usuario_asignado`) REFERENCES `usuarios` (`id_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.tareas: ~0 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.tareas: ~0 rows (approximately)
+INSERT INTO `tareas` (`id_tarea`, `id_instalacion`, `id_admin`, `id_usuario_asignado`, `tipo_tarea`, `descripcion`, `fecha_asignacion`, `estado`) VALUES
+	(5, 5, 10, 3, 'PLAN ULTRA', 'Instalación de PLAN ULTRA para el cliente Adela huaman', '2025-08-21', 'Completada'),
+	(6, 6, 10, 7, 'PLAN HOGAR 30MB (90 SOLES))', 'Instalación de PLAN HOGAR 30MB (90 SOLES)) para el cliente royer daniel', '2025-08-21', 'Completada'),
+	(7, 7, 10, 3, 'Reparacion', 'oi', '2025-08-21', 'Pendiente');
 
--- Volcando estructura para tabla gestor_instalaciones.tipos_instalacion
+-- Dumping structure for table gestor_instalaciones.tipos_instalacion
 DROP TABLE IF EXISTS `tipos_instalacion`;
 CREATE TABLE IF NOT EXISTS `tipos_instalacion` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `nombre` (`nombre`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.tipos_instalacion: ~0 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.tipos_instalacion: ~0 rows (approximately)
 
--- Volcando estructura para tabla gestor_instalaciones.usuarios
+-- Dumping structure for table gestor_instalaciones.usuarios
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id_usuario` int unsigned NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `es_admin` tinyint(1) DEFAULT '0',
-  `direccion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `telefono` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `dni` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `direccion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `dni` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_usuario`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla gestor_instalaciones.usuarios: ~11 rows (aproximadamente)
+-- Dumping data for table gestor_instalaciones.usuarios: ~11 rows (approximately)
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `email`, `password`, `es_admin`, `direccion`, `telefono`, `dni`) VALUES
 	(2, 'gianella luz sandoval villena', 'gianellaluzsandoval@gmail.com', 'scrypt:32768:8:1$ylkc3zBb3Uzljkiw$871f5172b0979a18bf0792734c344e0be96e1596830895928a36f71838f88ffc5f9d4d18c0e6dc59288949d7bbc6a051f55ea099353361972c88768915894fbf', 1, 'jr.junin n°23', '900156694', '73900329'),
 	(3, 'Royer Daniel Alvaro Cusi', 'vAries649@gmail.com', 'scrypt:32768:8:1$SNLSbjRd8FUalfTn$5df36a5db2723a174bf61111d73ae6f49adeef0d29499b82b7884160eb334a92e98f14c4683720bcbb1c06f2616376125f1e74cc07c5ff910476a02c549225dd', 0, '0800', '905433166', '71448218'),

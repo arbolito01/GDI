@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Solicitar Gestión de OLT{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-8 bg-gray-100 min-h-screen">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Solicitar Gestión de OLT</h1>
+    <div class="bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="mb-4 p-3 rounded-lg text-white {% if category == 'success' %}bg-green-500{% elif category == 'error' %}bg-red-500{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('solicitar_olt') }}" method="POST">
+            <div class="mb-4">
+                <label for="id_instalacion" class="block text-gray-700 text-sm font-bold mb-2">ID de la Instalación:</label>
+                <input type="number" name="id_instalacion" id="id_instalacion" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="onu_sn" class="block text-gray-700 text-sm font-bold mb-2">Serial de la ONU (S/N):</label>
+                <input type="text" name="onu_sn" id="onu_sn" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="tipo_solicitud" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Solicitud:</label>
+                <select name="tipo_solicitud" id="tipo_solicitud" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="crear">Nueva Conexión</option>
+                    <option value="cambiar_puerto">Cambio de Puerto</option>
+                    <option value="migrar">Migración de OLT</option>
+                </select>
+            </div>
+            <div class="mb-4" id="campo_adicional" style="display:none;">
+                <label for="datos_adicionales" class="block text-gray-700 text-sm font-bold mb-2">Datos Adicionales (Puerto/IP):</label>
+                <input type="text" name="datos_adicionales" id="datos_adicionales" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Enviar Solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('tipo_solicitud').addEventListener('change', function (e) {
+        const campoAdicional = document.getElementById('campo_adicional');
+        if (e.target.value === 'cambiar_puerto' || e.target.value === 'migrar') {
+            campoAdicional.style.display = 'block';
+        } else {
+            campoAdicional.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
